@@ -1,22 +1,22 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-import Link from "next/link";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <div>
-      <h1>Gestion de Pedidos DAN</h1>
-      <Link href="/clientes">
-        <button className={styles.botones}>Go to Clientes</button>
-      </Link>
-      <Link href="/productos">
-        <button className={styles.botones} >Go to Productos</button>
-      </Link>
-      <Link href="/pedidos">
-        <button className={styles.botones}>Go to Pedidos</button>
-      </Link>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-red-500 to-red-900">
+      <h1 className="text-5xl font-bold text-white mb-20 mt-[-70px]">Gestión de Pedidos</h1>
+      <div className="flex space-x-4"> 
+        <button className="px-6 py-3 bg-white text-red-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
+          Clientes
+        </button>
+        <Link href="/productos/page.js"> 
+          <button className="px-6 py-3 bg-white text-red-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
+            Productos
+          </button>
+        </Link>
+        <button className="px-6 py-3 bg-white text-red-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
+          Pedidos
+        </button>
       </div>
-    </main>
+    </div>
   );
 }
