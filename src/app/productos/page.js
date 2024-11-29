@@ -1,56 +1,245 @@
 'use client';
-import { useState } from 'react';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { buscarProducto } from "@/lib/productos-api";
+import { buscarProductoId, buscarTodos, actualizarProducto } from "@/lib/productos-api";
 
 export default function Productos() {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
-  
   const handleSearch = async () => {
-    const lista = await buscarProducto('abc');
-    console.log(lista);
-    // Simulate a search by filtering some dummy data
-    const dummyData = [
-      { id: 1, name: 'Product 1' },
-      { id: 2, name: 'Product 2' },
-    ];
-    setResults(dummyData.filter(product => product.name.includes(searchTerm) || product.id.toString() === searchTerm));
+    if (searchTerm.trim() === '') {
+      await handleSearchTodos();
+      return;
+    }
+
+    console.log("Buscando producto con ID:", searchTerm);
+
+    try {
+      const data = await buscarProductoId(searchTerm);   
+      console.log("Producto encontrado:", data);
+      setResults([data]);
+    } catch (error) {
+      console.error("Error al buscar el producto:", error);
+    }
+  };
+
+  const handleSearchTodos = async () => {
+    console.log("Buscando todos los productos");
+
+    try {
+      const data = await buscarTodos();   
+      console.log("Productos encontrados:", data);
+      setResults(data);
+    } catch (error) {
+      console.error("Error al buscar los productos:", error);
+    }
+  };
+
+  const handleRowClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleEditClick = () => {
+    if (selectedProduct) {
+      setEditingProduct({ ...selectedProduct });
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditingProduct((prevProduct) => ({
+      ...prevProduct,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    try{
+      actualizarProducto(editingProduct.id, editingProduct);
+    }
+    catch (error) {
+      console.error("Error:", error);
+    }
+    console.log("Producto actualizado:", editingProduct);
+    setSelectedProduct(null);
+    setEditingProduct(null);
   };
 
   return (
-    <>
-      <h1>Productos Page</h1>
-      <input 
-        type="text" 
-        placeholder="Buscar por número o nombre de producto" 
-        value={searchTerm} 
-        onChange={(e) => setSearchTerm(e.target.value)} 
-      />
-      <button onClick={handleSearch}>Buscar</button>
-      <Link href="/productos/new">
-        <button>Crear nuevo producto</button>
-      </Link>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-          </tr>
-        </thead>
-        <tbody>
-          {results.map(product => (
-            <tr key={product.id}>
-              <td>
-                <Link href={`/productos/${product.id}`}>{product.id}</Link>
-              </td>
-              <td>{product.name}</td>
+    <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Productos Page</h1>
+      <div className="flex items-center space-x-4 mb-6">
+        <input
+          type="text"
+          placeholder="Buscar por número o nombre de producto"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          Buscar
+        </button>
+        <Link href="/productos/new">
+          <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            Crear nuevo producto
+          </button>
+        </Link>
+      </div>
+      
+      {editingProduct ? (
+        <div className="mb-6">
+          <h2 className="text-xl font-bold mb-2">Editar Producto</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block font-semibold">ID:</label>
+              <input
+                type="text"
+                value={editingProduct.id}
+                disabled
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Nombre:</label>
+              <input
+                type="text"
+                name="nombre"
+                value={editingProduct.nombre}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Categoría:</label>
+              <input
+                type="text"
+                value={editingProduct.categoria}
+                disabled
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Descripción:</label>
+              <input
+                type="text"
+                name="descripcion"
+                value={editingProduct.descripcion}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Precio:</label>
+              <input
+                type="number"
+                name="precio"
+                value={editingProduct.precio}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Stock Actual:</label>
+              <input
+                type="number"
+                name="stockActual"
+                value={editingProduct.stockActual}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Stock Mínimo:</label>
+              <input
+                type="number"
+                name="stockMinimo"
+                value={editingProduct.stockMinimo}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Descuento Promocional:</label>
+              <input
+                type="number"
+                name="descuentoPromocional"
+                value={editingProduct.descuentoPromocional}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+              />
+            </div>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setEditingProduct(null)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <table className="w-full table-auto border-collapse border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Nombre</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Categoría</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Descripción</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Precio</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Stock Actual</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Stock Mínimo</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">Descuento Promocional</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
+          </thead>
+          <tbody>
+            {results.map(product => (
+              <tr
+                key={product.id}
+                className={`hover:bg-gray-50 cursor-pointer ${
+                  selectedProduct?.id === product.id ? 'bg-gray-200' : ''
+                }`}
+                onClick={() => handleRowClick(product)}
+              >
+                <td className="border border-gray-300 px-4 py-2">
+                  <span className="text-blue-500">{product.id}</span>
+                </td>
+                <td className="border border-gray-300 px-4 py-2">{product.nombre}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.categoria}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.descripcion}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.precio}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.stockActual}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.stockMinimo}</td>
+                <td className="border border-gray-300 px-4 py-2">{product.descuentoPromocional}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {selectedProduct && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={handleEditClick}
+            className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+          >
+            Editar
+          </button>
+        </div>
+      )}
+    </div>
   );
-};
+}

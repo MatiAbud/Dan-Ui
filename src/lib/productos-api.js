@@ -1,15 +1,18 @@
-// Function to fetch a paginated list of Pokémon
-export async function buscarProducto(queryValue, limit, offset = 0) {
-    const apiUrl = `/productos/api/productos`;
-    console.log('querying to ',apiUrl);
-    try {
-      const response = await fetch(apiUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.results;
-    } catch (error) {
-      console.error("Failed to fetch productos:", error);
-    }
-  }
+import axios from 'axios';
+
+
+export const buscarProductoId = async (id)=>{
+  const url=`http://localhost/productos/api/productos/${id}`;
+  const response = await axios.get(url);
+  return response.data;
+};
+export const buscarTodos = async ()=>{
+  const url=`http://localhost/productos/api/productos/todos`;
+  const response = await axios.get(url);
+  return response.data;
+};
+export const actualizarProducto = async (id,editingProduct)=>{
+  const url=`http://localhost/productos/api/productos/${id}`;
+  const response = await axios.put(url,editingProduct);
+  return response.data;
+};

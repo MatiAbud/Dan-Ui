@@ -1,25 +1,18 @@
 "use client";
-import Link from 'next/link';
 
-const Navbar = () => {
+// src/components/Navbar.js
+export default function Navbar() {
   return (
-    <nav>
-      <Link href="/clientes">Clientes</Link>
-      <Link href="/productos">Productos</Link>
-      <Link href="/pedidos">Pedidos</Link>
+    <div className="navbar">
+      <span className="text-white font-bold uppercase">DAN</span>
       <style jsx>{`
-        nav {
-          background: #333;
-          padding: 10px;
-        }
-        a {
+        .navbar {
+          background-color: #1f2937; /* Color similar al de la barra lateral */
           color: white;
-          margin-right: 10px;
-          text-decoration: none;
+          padding: 16px;
+          text-align: center;
         }
       `}</style>
-    </nav>
+    </div>
   );
-};
-
-export default Navbar;
+}
