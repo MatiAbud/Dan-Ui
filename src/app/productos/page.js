@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { actualizarProducto, buscarProductoId, buscarTodos } from "@/lib/productos-api";
 import Link from 'next/link';
-import { buscarProductoId, buscarTodos, actualizarProducto } from "@/lib/productos-api";
+import { useState } from 'react';
 
 export default function Productos() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,7 +86,7 @@ export default function Productos() {
         >
           Buscar
         </button>
-        <Link href="/productos/new">
+        <Link href="/productos/crear">
           <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
             Crear nuevo producto
           </button>
