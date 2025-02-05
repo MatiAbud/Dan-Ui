@@ -12,7 +12,7 @@ export default function Home() {
           <button className="px-6 py-3 bg-white text-black-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
             Productos
           </button>
-        </Link>
+        </Link >
         <button className="px-6 py-3 bg-white text-black-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
           Pedidos
         </button>
