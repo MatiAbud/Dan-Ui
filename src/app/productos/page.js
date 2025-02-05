@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarProducto, buscarProductoId, buscarTodos } from "@/lib/productos-api";
+import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto } from "@/lib/productos-api";
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -9,6 +9,8 @@ export default function Productos() {
   const [results, setResults] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const handleSearch = async () => {
     if (searchTerm.trim() === '') {
@@ -67,6 +69,27 @@ export default function Productos() {
     console.log("Producto actualizado:", editingProduct);
     setSelectedProduct(null);
     setEditingProduct(null);
+  };
+
+  const confirmDelete = (product) => {
+    setSelectedProduct(product);
+    setShowConfirm(true);
+  };
+
+  const handleDelete = () => {
+    if (!selectedProduct) return;
+
+    try{
+      borrarProducto(selectedProduct.id)
+    }
+    catch(error){
+      console.error("Error:", error);
+    }
+    console.log("Producto eliminado:", selectedProduct);
+
+    alert("Producto eliminado correctamente");
+    setShowConfirm(false);
+    setSelectedProduct(null);
   };
 
   return (
@@ -231,15 +254,43 @@ export default function Productos() {
       )}
 
       {selectedProduct && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-end space-x-4">
           <button
             onClick={handleEditClick}
             className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
           >
             Editar
           </button>
+          <button
+            onClick={() => confirmDelete(selectedProduct)}
+            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          >
+            Eliminar
+          </button>
         </div>
       )}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Confirmar eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar este producto?</p>
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+)}
     </div>
   );
 }

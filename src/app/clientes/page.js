@@ -1,6 +1,6 @@
 'use client';
 
-import { buscarClienteId } from "@/lib/clientes-api";
+import { actualizarCliente, buscarClienteId , buscarTodos} from "@/lib/clientes-api";
 import Link from 'next/link';
 import { useState } from "react";
 
@@ -41,7 +41,7 @@ export default function Cliente(){
     };
     
     const handleRowClick = (client) => {
-        setSelectedProduct(client);
+        setSelectedClient(client);
     };
     
     const handleEditClick = () => {
@@ -60,14 +60,14 @@ export default function Cliente(){
     
     const handleSave = () => {
         try{
-            actualizarProducto(editingClient.id, editingClient);
+            actualizarCliente(editingClient.id, editingClient);
         }
         catch (error) {
             console.error("Error:", error);
         }
         console.log("Cliente actualizado:", editingClient);
-        setSelectedProduct(null);
-        setEditingProduct(null);
+        setSelectedClient(null);
+        setEditingClient(null);
     };
 
     return (
@@ -121,7 +121,7 @@ export default function Cliente(){
                 <label className="block font-semibold">Correo Electronico:</label>
                     <input
                         type="text"
-                        value={editingClient.correoElec}
+                        value={editingClient.correoElectronico}
                         disabled
                         className="border border-gray-300 rounded-lg p-2 w-full"
                     />
@@ -141,7 +141,7 @@ export default function Cliente(){
                     <input
                         type="number"
                         name="maxDescubierto"
-                        value={editingClient.maxDescubierto}
+                        value={editingClient.maximoDescubierto}
                         onChange={handleInputChange}
                         className="border border-gray-300 rounded-lg p-2 w-full"
                     />
@@ -151,7 +151,17 @@ export default function Cliente(){
                     <input
                         type="number"
                         name="maxObras"
-                        value={editingClient.maxObras}
+                        value={editingClient.maxObrasEnEjecucion}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded-lg p-2 w-full"
+                    />
+            </div>
+            <div>
+                <label className="block font-semibold">Saldo:</label>
+                    <input
+                        type="number"
+                        name="saldo"
+                        value={editingClient.saldo}
                         onChange={handleInputChange}
                         className="border border-gray-300 rounded-lg p-2 w-full"
                     />
@@ -182,6 +192,7 @@ export default function Cliente(){
                     <th className="border border-gray-300 px-4 py-2 text-left">Cuit</th>
                     <th className="border border-gray-300 px-4 py-2 text-left">Maximo descubierto</th>
                     <th className="border border-gray-300 px-4 py-2 text-left">Maxima obras en ejecución</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Saldo</th>
                     </tr>
                 </thead>
             <tbody>
@@ -197,10 +208,11 @@ export default function Cliente(){
                         <span className="text-blue-500">{client.id}</span>
                         </td>
                         <td className="border border-gray-300 px-4 py-2">{client.nombre}</td>
-                        <td className="border border-gray-300 px-4 py-2">{client.correoElec}</td>
+                        <td className="border border-gray-300 px-4 py-2">{client.correoElectronico}</td>
                         <td className="border border-gray-300 px-4 py-2">{client.cuit}</td>
-                        <td className="border border-gray-300 px-4 py-2">{client.maxDescubierto}</td>
-                        <td className="border border-gray-300 px-4 py-2">{client.maxObras}</td>
+                        <td className="border border-gray-300 px-4 py-2">{client.maximoDescubierto}</td>
+                        <td className="border border-gray-300 px-4 py-2">{client.maxObrasEnEjecucion}</td>
+                        <td className="border border-gray-300 px-4 py-2">{client.saldo}</td>
                     </tr>
                     ))}
             </tbody>
