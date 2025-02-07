@@ -1,4 +1,3 @@
-import axios from 'axios';
 //llama al back
 
 export const buscarProductoId = async (id)=>{

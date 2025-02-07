@@ -15,9 +15,11 @@ export default function Home() {
             Productos
           </button>
         </Link>
+        <Link href="/pedidos">
         <button className="px-6 py-3 bg-white text-black-700 font-semibold rounded-lg shadow-md hover:bg-gray-100">
           Pedidos
         </button>
+        </Link>
       </div>
     </div>
   );
