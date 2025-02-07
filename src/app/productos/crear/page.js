@@ -4,6 +4,7 @@ import { crearProducto } from "@/lib/productos-api";
 import { CATEGORIAS } from '@/util/categorias';
 import Link from 'next/link';
 import { useState } from 'react';
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function NewProduct() {
   const [productName, setProductName] = useState('');
@@ -13,6 +14,7 @@ export default function NewProduct() {
   const [stockMinimo, setStockMinimo] = useState(0);
   const [descuentoPromocional, setDescuentoPromocional] = useState(0);
   const [selectedCategoria, setSelectedCategoria] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
 
   const handleCreate = () => {
     if (stockActual < 0 || stockMinimo < 0 || precio < 0) {
@@ -32,6 +34,7 @@ export default function NewProduct() {
 
     try {
       crearProducto(newProduct);
+
       console.log("Producto creado:", newProduct);
     } catch (error) {
       console.error("Error:", error);
@@ -45,6 +48,9 @@ export default function NewProduct() {
     setStockActual(0);
     setStockMinimo(0);
     setDescuentoPromocional(0);
+    setShowMessage(true);
+
+
   };
 
   return (
@@ -165,6 +171,12 @@ export default function NewProduct() {
           Guardar Producto
         </button>
       </div>
+      {showMessage && (
+              <ConfirmationMessage
+                message="¡Producto creado correctamente!"
+                type="success"
+              />
+            )}
     </div>
   );
 }

@@ -1,4 +1,7 @@
 //llama al back
+import { useState } from "react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export const buscarProductoId = async (id)=>{
   const url = `http://localhost:3080/productos/api/productos/${id}`;
@@ -67,3 +70,6 @@ export const borrarProducto = async (id) => {
   }
   
 };
+
+
+

@@ -1,8 +1,9 @@
 'use client';
 
-import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto } from "@/lib/productos-api";
+import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto} from "@/lib/productos-api";
 import Link from 'next/link';
 import { useState } from 'react';
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function Productos() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,7 @@ export default function Productos() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
 
 
   const handleSearch = async () => {
@@ -69,6 +71,7 @@ export default function Productos() {
     console.log("Producto actualizado:", editingProduct);
     setSelectedProduct(null);
     setEditingProduct(null);
+    
   };
 
   const confirmDelete = (product) => {
@@ -87,7 +90,7 @@ export default function Productos() {
     }
     console.log("Producto eliminado:", selectedProduct);
 
-    alert("Producto eliminado correctamente");
+    setShowMessage(true);
     setShowConfirm(false);
     setSelectedProduct(null);
   };
@@ -104,6 +107,7 @@ export default function Productos() {
           className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
+
           onClick={handleSearch}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
         >
@@ -291,6 +295,13 @@ export default function Productos() {
           </div>
         </div>
 )}
+{showMessage && (
+        <ConfirmationMessage
+          message="¡Producto eliminado correctamente!"
+          type="success"
+        />
+      )}
     </div>
   );
+  
 }
