@@ -14,11 +14,13 @@ export default function NewProduct() {
   const [stockMinimo, setStockMinimo] = useState(0);
   const [descuentoPromocional, setDescuentoPromocional] = useState(0);
   const [selectedCategoria, setSelectedCategoria] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
 
   const handleCreate = () => {
     if (stockActual < 0 || stockMinimo < 0 || precio < 0) {
-      alert("Los valores no pueden ser negativos.");
+      setError("Los valores no pueden ser negativos.");
       return;
     }
 
@@ -32,25 +34,28 @@ export default function NewProduct() {
       descuentoPromocional: descuentoPromocional,
     };
 
+    setLoading(true);
+    setError(null);
+
     try {
       crearProducto(newProduct);
 
       console.log("Producto creado:", newProduct);
     } catch (error) {
       console.error("Error:", error);
+      setError("No se pudo crear el producto. Intenta nuevamente más tarde.");
+    } finally {
+          // Resetear formulario
+      setProductName('');
+      setSelectedCategoria('');
+      setDescripcion('');
+      setPrecio(0);
+      setStockActual(0);
+      setStockMinimo(0);
+      setDescuentoPromocional(0);
+      setShowMessage(true);
+      setLoading(false);
     }
-
-    // Resetear formulario
-    setProductName('');
-    setSelectedCategoria('');
-    setDescripcion('');
-    setPrecio(0);
-    setStockActual(0);
-    setStockMinimo(0);
-    setDescuentoPromocional(0);
-    setShowMessage(true);
-
-
   };
 
   return (
@@ -166,9 +171,10 @@ export default function NewProduct() {
         </Link>
         <button
           onClick={handleCreate}
-          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+          disabled={loading}
+          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition disabled:bg-green-300"
         >
-          Guardar Producto
+          {loading ? "Guardando..." : "Guardar Producto"}
         </button>
       </div>
       {showMessage && (

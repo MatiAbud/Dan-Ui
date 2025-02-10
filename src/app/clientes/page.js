@@ -1,8 +1,9 @@
 'use client';
 
-import { actualizarCliente, buscarClienteId, buscarTodos } from "@/lib/clientes-api";
+import { actualizarCliente, buscarClienteId, buscarTodos , eliminarCliente} from "@/lib/clientes-api";
 import Link from 'next/link';
 import { useState } from "react";
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function Cliente() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -11,6 +12,9 @@ export default function Cliente() {
     const [editingClient, setEditingClient] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [showMessage, setShowMessage] = useState(false);
+    const [messageType,setMessageType] = useState(null);
 
     const handleSearch = async () => {
         if (searchTerm.trim() === '') {
@@ -73,16 +77,44 @@ export default function Cliente() {
 
         try {
             await actualizarCliente(editingClient.id, editingClient);
-            setSelectedClient(null);
-            setEditingClient(null);
-            await handleSearchTodos(); // Refrescar la lista después de guardar
+            await handleSearchTodos();
+             // Refrescar la lista después de guardar
         } catch (error) {
             console.error("Error al actualizar el cliente:", error);
             setError("No se pudo actualizar el cliente. Intenta nuevamente más tarde.");
-        } finally {
-            setLoading(false);
         }
+        console.log("Cliente actualizado:", editingClient);
+
+        setMessageType("editar");
+        setShowMessage(true);
+        setSelectedClient(null);
+        setEditingClient(null);
+        
     };
+
+    const confirmDelete = (cliente) => {
+        setSelectedClient(cliente);
+        setShowConfirm(true);
+      };
+
+      const handleDelete = async () => {
+        if (!selectedClient) return;
+    
+        try{
+          await eliminarCliente(selectedClient.id)
+          await handleSearchTodos();
+        }
+        catch(error){
+          console.error("Error:", error);
+        }
+        console.log("Cliente eliminado:", selectedClient);
+        
+        setMessageType("eliminar");
+        setShowMessage(true);
+        setShowConfirm(false);
+        setSelectedClient(null);
+      };
+    
 
     return (
         <div className="max-w-4xl mx-auto p-4">
@@ -249,15 +281,53 @@ export default function Cliente() {
 
             {/* Botón de edición */}
             {selectedClient && !editingClient && (
-                <div className="mt-4 flex justify-end">
+                <div className="mt-4 flex justify-end space-x-4">
                     <button
                         onClick={handleEditClick}
                         className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
                     >
                         Editar
                     </button>
+                    <button
+                        onClick={() => confirmDelete(selectedClient)}
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                        >
+                        Eliminar
+                    </button>
                 </div>
             )}
+            {showConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">Confirmar eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar este cliente?</p>
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+)}
+            {showMessage && (
+                    <ConfirmationMessage
+                      message={
+                        messageType === "eliminar"
+                        ? "¡Cliente eliminado correctamente!"
+                        : "¡Cliente actualizado correctamente!"
+                      }
+                      type="success"
+                    />
+                  )}
         </div>
     );
 }

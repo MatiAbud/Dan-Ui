@@ -7,19 +7,27 @@ import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function Productos() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [minPrecio, setMinPrecio] = useState('');
+  const [maxPrecio, setMaxPrecio] = useState('');
+  const [minStock, setMinStock] = useState('');
+  const [maxStock, setMaxStock] = useState('');
+  const [nombre, setNombre] = useState('');
   const [results, setResults] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
-
+  const [messageType, setMessageType] = useState(null);
 
   const handleSearch = async () => {
     if (searchTerm.trim() === '') {
       await handleSearchTodos();
       return;
     }
-
+    setLoading(true);
+    setError(null);
     console.log("Buscando producto con ID:", searchTerm);
 
     try {
@@ -28,11 +36,16 @@ export default function Productos() {
       setResults([data]);
     } catch (error) {
       console.error("Error al buscar el producto:", error);
-    }
+      setError("No se pudo encontrar el producto. Verifica el ID e intenta nuevamente.");
+    } finally {
+      setLoading(false);
+  }
   };
 
   const handleSearchTodos = async () => {
     console.log("Buscando todos los productos");
+    setLoading(true);
+    setError(null);
 
     try {
       const data = await buscarTodos();   
@@ -40,7 +53,10 @@ export default function Productos() {
       setResults(data);
     } catch (error) {
       console.error("Error al buscar los productos:", error);
-    }
+      setError("No se pudieron cargar los productos. Intenta nuevamente más tarde.");
+    }finally {
+      setLoading(false);
+  }
   };
 
   const handleRowClick = (product) => {
@@ -61,14 +77,25 @@ export default function Productos() {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async() => {
+    if (!editingProduct) return;
+
+    setLoading(true);
+    setError(null);
+    
     try{
-      actualizarProducto(editingProduct.id, editingProduct);
+      await actualizarProducto(editingProduct.id, editingProduct);
+      await handleSearchTodos();
+
     }
     catch (error) {
       console.error("Error:", error);
+      setError("No se pudo actualizar el producto. Intenta nuevamente más tarde.");
     }
     console.log("Producto actualizado:", editingProduct);
+    
+    setMessageType("editar");
+    setShowMessage(true);
     setSelectedProduct(null);
     setEditingProduct(null);
     
@@ -79,17 +106,18 @@ export default function Productos() {
     setShowConfirm(true);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async() => {
     if (!selectedProduct) return;
 
     try{
-      borrarProducto(selectedProduct.id)
+      await borrarProducto(selectedProduct.id);
+      await handleSearchTodos();
     }
     catch(error){
       console.error("Error:", error);
     }
     console.log("Producto eliminado:", selectedProduct);
-
+    setMessageType("eliminar");
     setShowMessage(true);
     setShowConfirm(false);
     setSelectedProduct(null);
@@ -99,27 +127,74 @@ export default function Productos() {
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Productos Page</h1>
       <div className="flex items-center space-x-4 mb-6">
-        <input
-          type="text"
-          placeholder="Buscar por número o nombre de producto"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
+  <input
+    type="text"
+    placeholder="Código"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={nombre.length > 0}
+  />
+  <input
+    type="text"
+    placeholder="Nombre"
+    value={nombre}
+    onChange={(e) => setNombre(e.target.value)}
+    className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={searchTerm.length > 0}
+  />
+  <button
+    onClick={handleSearch}
+    disabled={loading}
+    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-blue-300 flex-1"
+  >
+    {loading ? "Buscando..." : "Buscar"}
+  </button>
+</div>
 
-          onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-        >
-          Buscar
-        </button>
-        <Link href="/productos/crear">
-          <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+<div className="flex items-center space-x-4 mb-6">
+  <input
+    type="text"
+    placeholder="Stock Mínimo"
+    value={minStock}
+    onChange={(e) => setMinStock(e.target.value)}
+    className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <input
+    type="text"
+    placeholder="Stock Máximo"
+    value={maxStock}
+    onChange={(e) => setMaxStock(e.target.value)}
+    className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <input
+    type="text"
+    placeholder="Precio Mínimo"
+    value={minPrecio}
+    onChange={(e) => setMinPrecio(e.target.value)}
+    className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <input
+    type="text"
+    placeholder="Precio Máximo"
+    value={maxPrecio}
+    onChange={(e) => setMaxPrecio(e.target.value)}
+    className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+        <Link href="/productos/crear" className="flex-1">
+          <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition w-full">
             Crear nuevo producto
           </button>
         </Link>
-      </div>
+</div>
       
+      {/* Mensajes de error */}
+      {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+          </div>
+      )}
+
       {editingProduct ? (
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-2">Editar Producto</h2>
@@ -211,9 +286,10 @@ export default function Productos() {
               </button>
               <button
                 onClick={handleSave}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-              >
-                Guardar
+                disabled={loading}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-blue-300"
+            >
+                {loading ? "Guardando..." : "Guardar"}
               </button>
             </div>
           </div>
@@ -297,7 +373,11 @@ export default function Productos() {
 )}
 {showMessage && (
         <ConfirmationMessage
-          message="¡Producto eliminado correctamente!"
+          message={
+            messageType === "eliminar"
+            ? "¡Producto eliminado correctamente!"
+            : "¡Producto actualizado correctamente!"
+          }
           type="success"
         />
       )}

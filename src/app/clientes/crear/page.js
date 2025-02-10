@@ -1,9 +1,10 @@
 'use client';
 
 import { crearCliente } from '@/lib/clientes-api';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link'; 
+//import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import ConfirmationMessage from '@/components/ConfirmationMessage';
 
 export default function NewClient() {
   const [nombre, setNombre] = useState('');
@@ -14,7 +15,8 @@ export default function NewClient() {
   const [saldo, setSaldo] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  //const router = useRouter();
+  const [showMessage, setShowMessage] = useState(false);
 
   const handleCreate = async () => {
     if (maximoDescubierto < 0 || maxObrasEnEjecucion < 0 || saldo < 0) {
@@ -42,13 +44,21 @@ export default function NewClient() {
     try {
       await crearCliente(newClient);
       console.log("Cliente creado:", newClient);
-      router.push('/clientes'); // Redirigir a la lista de clientes
+      //router.push('/clientes'); // Redirigir a la lista de clientes
     } catch (error) {
       console.error("Error:", error);
       setError("No se pudo crear el cliente. Intenta nuevamente más tarde.");
     } finally {
+      setCorreoElectronico(null);
+      setCuit(null);
+      setMaxObrasEnEjecucion(null);
+      setMaximoDescubierto(null);
+      setNombre(null);
+      setSaldo(null);
+      setShowMessage(true);
       setLoading(false);
     }
+    
   };
 
   return (
@@ -153,6 +163,12 @@ export default function NewClient() {
           {loading ? "Guardando..." : "Guardar Cliente"}
         </button>
       </div>
+      {showMessage && (
+                    <ConfirmationMessage
+                      message="¡Cliente creado correctamente!"
+                      type="success"
+                    />
+                  )}
     </div>
   );
 }
