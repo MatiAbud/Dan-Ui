@@ -1,16 +1,24 @@
 'use client';
 
 import { crearPedido } from "@/lib/pedidos-api"; // Importa la función de API para crear pedidos
+import { buscarTodos } from "@/lib/clientes-api";
+import { estadosPedido } from "@/util/estadosPedido";
 import Link from 'next/link';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CrearPedido() {
+    const [clientes, setClientes] = useState([]);
     const [formData, setFormData] = useState({
-        clienteId: '', // ID del cliente
+        cliente: {
+            id:null,
+            nombre:null,
+            correoElectronico:null,
+            cuit:null
+        }, 
         productos: [], // Lista de productos
-        fecha: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+        fecha: new Date().toISOString(), // Fecha actual por defecto
         total: 0, // Total del pedido
-        estado: "Pendiente", // Estado inicial del pedido
+        estado: "ACEPTADO", // Estado inicial del pedido
         direccionEnvio: { // Dirección de envío
             calle: '',
             ciudad: '',
@@ -19,6 +27,18 @@ export default function CrearPedido() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        async function fetchClientes() {
+            try {
+                const data = await buscarTodos();
+                setClientes(data);
+            } catch (err) {
+                console.error("Error al obtener clientes", err);
+            }
+        }
+        fetchClientes();
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -82,27 +102,28 @@ export default function CrearPedido() {
             <h1 className="text-2xl font-bold mb-4">Crear Nuevo Pedido</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block font-semibold">ID del Cliente:</label>
-                    <input
-                        type="text"
-                        name="clienteId"
-                        value={formData.clienteId}
-                        onChange={handleInputChange}
+                    <label className="block font-semibold">Cliente:</label>
+                    <select
+                        name="cliente"
+                        value={formData.cliente.id || ""}
+                        onChange={(e) => {
+                            const clienteSeleccionado = clientes.find(c => c.id === parseInt(e.target.value));
+                            setFormData(prevData => ({
+                                ...prevData,
+                                cliente: clienteSeleccionado || {}
+                            }));
+                        }}
                         className="border border-gray-300 rounded-lg p-2 w-full"
                         required
-                    />
-                </div>
-                <div>
-                    <label className="block font-semibold">Fecha:</label>
-                    <input
-                        type="date"
-                        name="fecha"
-                        value={formData.fecha}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded-lg p-2 w-full"
-                        required
-                    />
-                </div>
+                    >
+                        <option value="">Seleccione un cliente</option>
+                        {clientes.map(cliente => (
+                            <option key={cliente.id} value={cliente.id}>
+                                {cliente.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div> 
                 <div>
                     <label className="block font-semibold">Total:</label>
                     <input
@@ -123,9 +144,11 @@ export default function CrearPedido() {
                         className="border border-gray-300 rounded-lg p-2 w-full"
                         required
                     >
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="Enviado">Enviado</option>
-                        <option value="Entregado">Entregado</option>
+            {Object.entries(estadosPedido).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value}
+              </option>
+            ))}
                     </select>
                 </div>
                 <div>

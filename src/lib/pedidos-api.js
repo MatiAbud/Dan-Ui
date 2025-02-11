@@ -7,7 +7,7 @@ export const buscarPedidoPorId = async (id) => {
       throw new Error(`Error al obtener el pedido: ${response.statusText}`);
     }
     return response.json();
-  };
+  }; 
   
   export const buscarTodosLosPedidos = async () => {
     const url = `http://localhost/pedidos/api/pedidos/todos`;

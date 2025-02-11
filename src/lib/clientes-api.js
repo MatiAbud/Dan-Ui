@@ -12,7 +12,16 @@ export const buscarClienteId = async (id)=>{
   const url=`http://localhost/clientes/api/clientes/${id}`;
   const response = await fetch(url);
   if (!response.ok) {
-      throw new Error(`Error al obtener el producto: ${response.statusText}`);
+      throw new Error(`Error al obtener el cliente: ${response.statusText}`);
+    }
+  return response.json();
+};
+
+export const buscarClienteNombre = async (nombre)=>{
+  const url=`http://localhost/clientes/api/clientes/${nombre}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+      throw new Error(`Error al obtener el cliente: ${response.statusText}`);
     }
   return response.json();
 };

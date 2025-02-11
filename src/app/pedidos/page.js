@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarPedido, buscarPedidoId, buscarTodosPedidos } from "@/lib/pedidos-api"; // Importa las funciones de API
+import { actualizarPedido, buscarPedidoPorId, buscarTodosLosPedidos } from "@/lib/pedidos-api"; // Importa las funciones de API
 import Link from 'next/link';
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export default function Pedidos() {
         setLoading(true);
         setError('');
         try {
-            const data = await buscarPedidoId(searchTerm);
+            const data = await buscarPedidoPorId(searchTerm);
             console.log("Pedido encontrado:", data);
             setResults([data]);
         } catch (error) {
@@ -43,7 +43,7 @@ export default function Pedidos() {
         setLoading(true);
         setError('');
         try {
-            const data = await buscarTodosPedidos();
+            const data = await buscarTodosLosPedidos();
             console.log("Pedidos encontrados:", data);
             setResults(data);
         } catch (error) {

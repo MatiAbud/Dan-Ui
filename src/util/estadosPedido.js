@@ -1,0 +1,8 @@
+export const estadosPedido = {
+    ACEPTADO: "ACEPTADO",
+    RECHAZADO: "RECHAZADO",
+    NUEVO: "NUEVO",
+    CANCELADO: "CANCELADO",
+    EN_PREPARACION: "EN_PREPARACION",
+    ENTREGADO: "ENTREGADO",
+  };

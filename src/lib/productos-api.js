@@ -4,13 +4,23 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 export const buscarProductoId = async (id)=>{
-  const url = `http://localhost:3080/productos/api/productos/${id}`;
+  const url = `http://localhost:3080/productos/api/productos/id?id=${id}`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Error al obtener el producto: ${response.statusText}`);
   }
   return response.json();
 };
+
+export const buscarProductoNombre = async (nombre)=>{
+  const url = `http://localhost:3080/productos/api/productos/nombre?nombre=${nombre}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error al obtener el producto: ${response.statusText}`);
+  }
+  return response.json();
+};
+
 export const buscarTodos = async ()=>{
   const url = `http://localhost/productos/api/productos/todos`;
   const response = await fetch(url);

@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto} from "@/lib/productos-api";
+import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto, buscarProductoNombre} from "@/lib/productos-api";
 import Link from 'next/link';
 import { useState } from 'react';
 import ConfirmationMessage from "@/components/ConfirmationMessage";
@@ -22,24 +22,45 @@ export default function Productos() {
   const [messageType, setMessageType] = useState(null);
 
   const handleSearch = async () => {
-    if (searchTerm.trim() === '') {
+    if (searchTerm.trim() === '' && nombre.trim()=== '') {
       await handleSearchTodos();
       return;
     }
-    setLoading(true);
-    setError(null);
-    console.log("Buscando producto con ID:", searchTerm);
-
-    try {
-      const data = await buscarProductoId(searchTerm);   
-      console.log("Producto encontrado:", data);
-      setResults([data]);
-    } catch (error) {
-      console.error("Error al buscar el producto:", error);
-      setError("No se pudo encontrar el producto. Verifica el ID e intenta nuevamente.");
-    } finally {
-      setLoading(false);
-  }
+    else if (searchTerm.trim() != ''){
+      setLoading(true);
+      setError(null);
+      console.log("Buscando producto con ID:", searchTerm);
+  
+      try {
+        const data = await buscarProductoId(searchTerm);   
+        console.log("Producto encontrado:", data);
+        setResults([data]);
+      } catch (error) {
+        console.error("Error al buscar el producto:", error);
+        setError("No se pudo encontrar el producto. Verifica el ID e intenta nuevamente.");
+      } finally {
+        setLoading(false);
+    }
+    }
+    else {
+      setLoading(true);
+      setError(null);
+      console.log("Buscando producto con nombre:", nombre);
+      try {
+        let data = await buscarProductoNombre(nombre);   
+        console.log("Producto encontrado:", data);
+        if (minPrecio) data = data.filter(product => product.precio >= parseFloat(minPrecio));
+        if (maxPrecio) data = data.filter(product => product.precio <= parseFloat(maxPrecio));
+        if (minStock) data = data.filter(product => product.stockActual >= parseInt(minStock));
+        if (maxStock) data = data.filter(product => product.stockActual <= parseInt(maxStock));
+        setResults(data);
+      } catch (error) {
+        console.error("Error al buscar el producto:", error);
+        setError("No se pudo encontrar el producto. Verifica el nombre e intenta nuevamente.");
+      } finally {
+        setLoading(false);
+    }
+    }
   };
 
   const handleSearchTodos = async () => {
@@ -48,8 +69,12 @@ export default function Productos() {
     setError(null);
 
     try {
-      const data = await buscarTodos();   
+      let data = await buscarTodos();   
       console.log("Productos encontrados:", data);
+      if (minPrecio) data = data.filter(product => product.precio >= parseFloat(minPrecio));
+      if (maxPrecio) data = data.filter(product => product.precio <= parseFloat(maxPrecio));
+      if (minStock) data = data.filter(product => product.stockActual >= parseInt(minStock));
+      if (maxStock) data = data.filter(product => product.stockActual <= parseInt(maxStock));
       setResults(data);
     } catch (error) {
       console.error("Error al buscar los productos:", error);
@@ -159,6 +184,7 @@ export default function Productos() {
     value={minStock}
     onChange={(e) => setMinStock(e.target.value)}
     className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={searchTerm.length > 0}
   />
   <input
     type="text"
@@ -166,6 +192,7 @@ export default function Productos() {
     value={maxStock}
     onChange={(e) => setMaxStock(e.target.value)}
     className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={searchTerm.length > 0}
   />
   <input
     type="text"
@@ -173,6 +200,7 @@ export default function Productos() {
     value={minPrecio}
     onChange={(e) => setMinPrecio(e.target.value)}
     className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={searchTerm.length > 0}
   />
   <input
     type="text"
@@ -180,6 +208,7 @@ export default function Productos() {
     value={maxPrecio}
     onChange={(e) => setMaxPrecio(e.target.value)}
     className="w-32 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    disabled={searchTerm.length > 0}
   />
         <Link href="/productos/crear" className="flex-1">
           <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition w-full">
