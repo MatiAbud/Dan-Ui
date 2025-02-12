@@ -21,7 +21,7 @@ export const buscarProductoNombre = async (nombre)=>{
   return response.json();
 };
 
-export const buscarTodos = async ()=>{
+export const buscarTodosP = async ()=>{
   const url = `http://localhost/productos/api/productos/todos`;
   const response = await fetch(url);
   if (!response.ok) {

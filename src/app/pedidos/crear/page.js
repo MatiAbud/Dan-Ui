@@ -1,25 +1,21 @@
 'use client';
 
-import { crearPedido } from "@/lib/pedidos-api"; // Importa la función de API para crear pedidos
+import { crearPedido } from "@/lib/pedidos-api";
 import { buscarTodos } from "@/lib/clientes-api";
+import { buscarTodosP } from "@/lib/productos-api";
 import { estadosPedido } from "@/util/estadosPedido";
 import Link from 'next/link';
 import { useState, useEffect } from "react";
 
 export default function CrearPedido() {
     const [clientes, setClientes] = useState([]);
+    const [productos, setProductos] = useState([]);
     const [formData, setFormData] = useState({
-        cliente: {
-            id:null,
-            nombre:null,
-            correoElectronico:null,
-            cuit:null
-        }, 
-        productos: [], // Lista de productos
-        fecha: new Date().toISOString(), // Fecha actual por defecto
-        total: 0, // Total del pedido
-        estado: "ACEPTADO", // Estado inicial del pedido
-        direccionEnvio: { // Dirección de envío
+        cliente: {},
+        detalle: [],
+        total: 0,
+        estado: "ACEPTADO",
+        direccionEnvio: {
             calle: '',
             ciudad: '',
             codigoPostal: ''
@@ -29,53 +25,51 @@ export default function CrearPedido() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        async function fetchClientes() {
+        async function fetchData() {
             try {
-                const data = await buscarTodos();
-                setClientes(data);
+                const clientesData = await buscarTodos();
+                setClientes(clientesData);
+                const productosData = await buscarTodosP();
+                setProductos(productosData);
             } catch (err) {
-                console.error("Error al obtener clientes", err);
+                console.error("Error al obtener datos", err);
             }
         }
-        fetchClientes();
+        fetchData();
     }, []);
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prevData) => ({
-            ...prevData,
-            [name]: value,
-        }));
+    const handleClienteChange = (e) => {
+        const clienteSeleccionado = clientes.find(c => c.id === parseInt(e.target.value));
+        setFormData(prevData => ({ ...prevData, cliente: clienteSeleccionado || {} }));
     };
 
     const handleDireccionChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prevData) => ({
+        setFormData(prevData => ({
             ...prevData,
-            direccionEnvio: {
-                ...prevData.direccionEnvio,
-                [name]: value,
-            },
+            direccionEnvio: { ...prevData.direccionEnvio, [name]: value }
         }));
     };
 
-    const handleProductoChange = (index, e) => {
+    const handleDetalleChange = (index, e) => {
         const { name, value } = e.target;
-        const nuevosProductos = [...formData.productos];
-        nuevosProductos[index] = {
-            ...nuevosProductos[index],
-            [name]: value,
-        };
-        setFormData((prevData) => ({
-            ...prevData,
-            productos: nuevosProductos,
-        }));
+        let detallesActualizados = [...formData.detalle];
+        detallesActualizados[index] = { ...detallesActualizados[index], [name]: value };
+
+        if (name === "cantidad" || name === "descuento") {
+            const precioUnitario = parseFloat(detallesActualizados[index].producto.precio || 0);
+            const cantidad = parseInt(detallesActualizados[index].cantidad || 1);
+            const descuento = parseFloat(detallesActualizados[index].descuento || 0);
+            detallesActualizados[index].precioFinal = (precioUnitario * cantidad) - descuento;
+        }
+
+        setFormData(prevData => ({ ...prevData, detalle: detallesActualizados }));
     };
 
-    const agregarProducto = () => {
-        setFormData((prevData) => ({
+    const agregarDetalle = () => {
+        setFormData(prevData => ({
             ...prevData,
-            productos: [...prevData.productos, { productoId: '', cantidad: 1 }],
+            detalle: [...prevData.detalle, { producto: {}, cantidad: 1, precioUnitario: 0, descuento: 0, precioFinal: 0 }]
         }));
     };
 
@@ -85,9 +79,7 @@ export default function CrearPedido() {
         setError('');
 
         try {
-            const nuevoPedido = await crearPedido(formData);
-            console.log("Pedido creado:", nuevoPedido);
-            // Redirigir a la página de pedidos o mostrar un mensaje de éxito
+            await crearPedido(formData);
             window.location.href = '/pedidos';
         } catch (error) {
             setError("Error al crear el pedido.");
@@ -103,145 +95,47 @@ export default function CrearPedido() {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block font-semibold">Cliente:</label>
-                    <select
-                        name="cliente"
-                        value={formData.cliente.id || ""}
-                        onChange={(e) => {
-                            const clienteSeleccionado = clientes.find(c => c.id === parseInt(e.target.value));
-                            setFormData(prevData => ({
-                                ...prevData,
-                                cliente: clienteSeleccionado || {}
-                            }));
-                        }}
-                        className="border border-gray-300 rounded-lg p-2 w-full"
-                        required
-                    >
+                    <select value={formData.cliente.id || ""} onChange={handleClienteChange} className="border p-2 w-full" required>
                         <option value="">Seleccione un cliente</option>
                         {clientes.map(cliente => (
-                            <option key={cliente.id} value={cliente.id}>
-                                {cliente.nombre}
-                            </option>
+                            <option key={cliente.id} value={cliente.id}>{cliente.nombre}</option>
                         ))}
                     </select>
-                </div> 
-                <div>
-                    <label className="block font-semibold">Total:</label>
-                    <input
-                        type="number"
-                        name="total"
-                        value={formData.total}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded-lg p-2 w-full"
-                        required
-                    />
                 </div>
+
                 <div>
-                    <label className="block font-semibold">Estado:</label>
-                    <select
-                        name="estado"
-                        value={formData.estado}
-                        onChange={handleInputChange}
-                        className="border border-gray-300 rounded-lg p-2 w-full"
-                        required
-                    >
-            {Object.entries(estadosPedido).map(([key, value]) => (
-              <option key={key} value={key}>
-                {value}
-              </option>
-            ))}
-                    </select>
-                </div>
-                <div>
-                    <h2 className="text-xl font-bold mb-2">Dirección de Envío</h2>
-                    <div>
-                        <label className="block font-semibold">Calle:</label>
-                        <input
-                            type="text"
-                            name="calle"
-                            value={formData.direccionEnvio.calle}
-                            onChange={handleDireccionChange}
-                            className="border border-gray-300 rounded-lg p-2 w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block font-semibold">Ciudad:</label>
-                        <input
-                            type="text"
-                            name="ciudad"
-                            value={formData.direccionEnvio.ciudad}
-                            onChange={handleDireccionChange}
-                            className="border border-gray-300 rounded-lg p-2 w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block font-semibold">Código Postal:</label>
-                        <input
-                            type="text"
-                            name="codigoPostal"
-                            value={formData.direccionEnvio.codigoPostal}
-                            onChange={handleDireccionChange}
-                            className="border border-gray-300 rounded-lg p-2 w-full"
-                            required
-                        />
-                    </div>
-                </div>
-                <div>
-                    <h2 className="text-xl font-bold mb-2">Productos</h2>
-                    {formData.productos.map((producto, index) => (
-                        <div key={index} className="space-y-2">
-                            <div>
-                                <label className="block font-semibold">ID del Producto:</label>
-                                <input
-                                    type="text"
-                                    name="productoId"
-                                    value={producto.productoId}
-                                    onChange={(e) => handleProductoChange(index, e)}
-                                    className="border border-gray-300 rounded-lg p-2 w-full"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block font-semibold">Cantidad:</label>
-                                <input
-                                    type="number"
-                                    name="cantidad"
-                                    value={producto.cantidad}
-                                    onChange={(e) => handleProductoChange(index, e)}
-                                    className="border border-gray-300 rounded-lg p-2 w-full"
-                                    required
-                                />
-                            </div>
+                    <h2 className="text-xl font-bold mb-2">Detalles del Pedido</h2>
+                    {formData.detalle.map((detalle, index) => (
+                        <div key={index} className="space-y-2 border p-2 rounded-lg">
+                            <label>Producto:</label>
+                            <select name="producto" onChange={(e) => {
+                                const productoSeleccionado = productos.find(p => p.id === parseInt(e.target.value));
+                                handleDetalleChange(index, { target: { name: 'producto', value: productoSeleccionado } });
+                            }} className="border p-2 w-full" required>
+                                <option value="">Seleccione un producto</option>
+                                {productos.map(producto => (
+                                    <option key={producto.id} value={producto.id}>{producto.nombre}</option>
+                                ))}
+                            </select>
+                            <label>Cantidad:</label>
+                            <input type="number" name="cantidad" value={detalle.cantidad} onChange={(e) => handleDetalleChange(index, e)} className="border p-2 w-full" required />
+                            <label>Descuento:</label>
+                            <input type="number" name="descuento" value={detalle.descuento} onChange={(e) => handleDetalleChange(index, e)} className="border p-2 w-full" />
+                            <p>Precio Final: {detalle.precioFinal}</p>
                         </div>
                     ))}
-                    <button
-                        type="button"
-                        onClick={agregarProducto}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition mt-2"
-                    >
-                        Agregar Producto
-                    </button>
+                    <button type="button" onClick={agregarDetalle} className="bg-green-500 text-white px-4 py-2 rounded-lg mt-2">Agregar Producto</button>
                 </div>
+
                 <div className="flex justify-end space-x-4">
                     <Link href="/pedidos">
-                        <button
-                            type="button"
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                        >
-                            Cancelar
-                        </button>
+                        <button type="button" className="bg-gray-500 text-white px-4 py-2 rounded-lg">Cancelar</button>
                     </Link>
-                    <button
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-                        disabled={loading}
-                    >
+                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg" disabled={loading}>
                         {loading ? "Creando..." : "Crear Pedido"}
                     </button>
                 </div>
             </form>
-
             {error && <div className="text-red-500">{error}</div>}
         </div>
     );
