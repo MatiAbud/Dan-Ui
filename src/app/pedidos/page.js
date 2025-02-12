@@ -20,7 +20,7 @@ export default function Pedidos() {
             return;
         }
 
-        console.log("Buscando pedido con ID:", searchTerm);
+        console.log("Buscando pedido con número de pedido:", searchTerm);
 
         setLoading(true);
         setError('');
@@ -98,7 +98,7 @@ export default function Pedidos() {
             <div className="flex items-center space-x-4 mb-6">
                 <input
                     type="text"
-                    placeholder="Buscar pedido por ID"
+                    placeholder="Buscar pedido por número"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -124,7 +124,7 @@ export default function Pedidos() {
                     <h2 className="text-xl font-bold mb-2">Editar pedido</h2>
                     {/* Formulario para editar el pedido */}
                     <div>
-                        <label className="block font-semibold">ID Pedido:</label>
+                        <label className="block font-semibold">Número de pedido:</label>
                         <input
                             type="text"
                             value={editingPedido.id}
@@ -162,7 +162,7 @@ export default function Pedidos() {
                 <table className="w-full table-auto border-collapse border border-gray-200">
                     <thead>
                         <tr className="bg-gray-100">
-                            <th className="border border-gray-300 px-4 py-2 text-left">ID</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left">Número</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Cliente</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Fecha</th>
                             <th className="border border-gray-300 px-4 py-2 text-left">Estado</th>
@@ -178,7 +178,7 @@ export default function Pedidos() {
                                 }`}
                                 onClick={() => handleRowClick(pedido)}
                             >
-                                <td className="border border-gray-300 px-4 py-2">{pedido.id}</td>
+                                <td className="border border-gray-300 px-4 py-2">{pedido.numero}</td>
                                 <td className="border border-gray-300 px-4 py-2">{pedido.cliente.nombre}</td>
                                 <td className="border border-gray-300 px-4 py-2">{pedido.fecha}</td>
                                 <td className="border border-gray-300 px-4 py-2">{pedido.estado}</td>

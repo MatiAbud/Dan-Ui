@@ -6,6 +6,7 @@ import { buscarTodosP } from "@/lib/productos-api";
 import { estadosPedido } from "@/util/estadosPedido";
 import Link from 'next/link';
 import { useState, useEffect } from "react";
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function CrearPedido() {
     const [clientes, setClientes] = useState([]);
@@ -23,6 +24,7 @@ export default function CrearPedido() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showMessage, setShowMessage] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -80,12 +82,14 @@ export default function CrearPedido() {
 
         try {
             await crearPedido(formData);
-            window.location.href = '/pedidos';
+            console.log("Pedido creado:", formData);
+
         } catch (error) {
             setError("Error al crear el pedido.");
             console.error("Error:", error);
         } finally {
             setLoading(false);
+            setShowMessage(true);
         }
     };
 
@@ -137,6 +141,12 @@ export default function CrearPedido() {
                 </div>
             </form>
             {error && <div className="text-red-500">{error}</div>}
+                  {showMessage && (
+                          <ConfirmationMessage
+                            message="¡Pedido creado correctamente!"
+                            type="success"
+                          />
+                        )}
         </div>
     );
 }
