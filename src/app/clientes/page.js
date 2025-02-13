@@ -283,6 +283,17 @@ export default function Cliente() {
             {selectedClient && !editingClient && (
                 <div className="mt-4 flex justify-end space-x-4">
                     <button
+                        onClick={() => {
+                            if (selectedClient) {
+                                localStorage.setItem("clienteId", selectedClient.id);
+                                window.location.href = "/ui/clientes/obras";
+                            }
+                        }}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                    >
+                        Gestionar obras
+                    </button>
+                    <button
                         onClick={handleEditClick}
                         className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
                     >
