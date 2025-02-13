@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarProducto, buscarProductoId, buscarTodos, borrarProducto, buscarProductoNombre} from "@/lib/productos-api";
+import { actualizarProducto, buscarProductoId, buscarTodosP, borrarProducto, buscarProductoNombre} from "@/lib/productos-api";
 import Link from 'next/link';
 import { useState } from 'react';
 import ConfirmationMessage from "@/components/ConfirmationMessage";
@@ -69,7 +69,7 @@ export default function Productos() {
     setError(null);
 
     try {
-      let data = await buscarTodos();   
+      let data = await buscarTodosP();   
       console.log("Productos encontrados:", data);
       if (minPrecio) data = data.filter(product => product.precio >= parseFloat(minPrecio));
       if (maxPrecio) data = data.filter(product => product.precio <= parseFloat(maxPrecio));
