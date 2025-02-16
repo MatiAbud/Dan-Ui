@@ -53,6 +53,39 @@ export const crearCliente = async (client)=>{
     return response.json();
 };
 
+export const crearObra = async (obra)=>{
+  const url=`http://localhost/clientes/api/obras`;
+  const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      },
+      
+      body: JSON.stringify(obra),
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al crear la obra: ${response.statusText}`);
+    }
+    return response.json();
+};
+
+export const asociarObra = async (idObra, idCliente) =>{
+  const url=`http://localhost/clientes/api/obras/${idObra}/${idCliente}`
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      'Access-Control-Allow-Origin': '*'
+    },
+  })
+  if (!response.ok) {
+    throw new Error(`Error al asociar la obra: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 export const actualizarCliente = async (id, editingClient)=>{
   const url=`http://localhost/clientes/api/clientes/${id}`;
   const response = await fetch(url, {
@@ -87,4 +120,52 @@ export const eliminarCliente = async (id)=>{
         throw new Error(`Error al eliminar el producto: ${response.statusText}`);
       }
       return response.json();
+};
+
+export const habilitarObra = async (id)=>{
+  const url=`http://localhost/clientes/api/obras/${id}/habilitar`;
+  const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el estado: ${response.statusText}`);
+    }
+    return response.json();
+};
+
+export const finalizarObra = async (id)=>{
+  const url=`http://localhost/clientes/api/obras/${id}/finalizar`;
+  const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el estado: ${response.statusText}`);
+    }
+    return response.json();
+};
+
+export const pendienteObra = async (id)=>{
+  const url=`http://localhost/clientes/api/obras/${id}/pendiente`;
+  const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el estado: ${response.statusText}`);
+    }
+    return response.json();
 };

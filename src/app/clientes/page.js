@@ -286,7 +286,11 @@ export default function Cliente() {
                         onClick={() => {
                             if (selectedClient) {
                                 localStorage.setItem("clienteId", selectedClient.id);
-                                window.location.href = "/ui/clientes/obras";
+                                console.log("Cliente seleccionado:", selectedClient); 
+                                console.log("ID guardado:", selectedClient?.id);
+                                setTimeout(() => {
+                                    window.location.href = "/ui/clientes/obras";
+                                }, 100); // Espera 100ms antes de redirigir
                             }
                         }}
                         className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
