@@ -11,6 +11,7 @@ export default function Obra() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [clienteId, setClienteId] = useState(null);
+    const [nombre, setNombre] = useState('');
 
     // Estado del modal
     const [showModal, setShowModal] = useState(false);
@@ -18,8 +19,10 @@ export default function Obra() {
 
     useEffect(() => {
         const storedClienteId = localStorage.getItem("clienteId");
+        const storedNombre =localStorage.getItem("nombre");
         if (storedClienteId) {
             setClienteId(storedClienteId);
+            setNombre(storedNombre)
             handleSearch(storedClienteId);
         }
     }, []);
@@ -44,32 +47,31 @@ export default function Obra() {
 
     const handleCambioEstado = () => {
         if (selectedObra) {
-            setSelectedEstado(selectedObra.estado); // Establecer el estado actual
             setShowModal(true); // Mostrar modal
         }
     };
 
-    const handleGuardarEstado = () => {
+    const handleGuardarEstado = async () => {
         console.log(selectedEstado);
         if(selectedEstado == "pendiente"){
-            pendienteObra(selectedObra.id);
+            await pendienteObra(selectedObra.id);
         }
         else if(selectedEstado=="habilitada"){
-            habilitarObra(selectedObra.id);
+            await habilitarObra(selectedObra.id);
         }
         else{
-            finalizarObra(selectedObra.id);
+            await finalizarObra(selectedObra.id);
         }
         setShowModal(false);
-        handleSearch(storedClienteId);
+        handleSearch(clienteId);
 
     };
 
-    return (
-        <div className="max-w-4xl mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Gestión de obras</h1>
+    return (    
+        <div className="max-w-4xl mx-auto p-4 flex-1">
+            <h1 className="text-2xl font-bold mb-4">Gestión de obras: {nombre || "Sin nombre"}</h1>
             <Link href="/clientes/obras/crear">
-                        <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition">
+                        <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition mb-4">
                             Asignar Obra
                         </button>
                     </Link>
@@ -102,7 +104,9 @@ export default function Obra() {
                             <td className="border border-gray-300 px-4 py-2">{obra.direccion}</td>
                             <td className="border border-gray-300 px-4 py-2">{obra.estado}</td>
                             <td className="border border-gray-300 px-4 py-2">{obra.presupuesto}</td>
-                            <td className="border border-gray-300 px-4 py-2">{obra.tipo}</td>
+                            <td className="border border-gray-300 px-4 py-2">
+                                {obra.tipo === true ?  "Remodelación" : "Nueva"}
+                            </td>
                         </tr>
                     ))}
                 </tbody>
@@ -132,6 +136,7 @@ export default function Obra() {
                             }
                             className="w-full p-2 border border-gray-300 rounded-md"
                         >
+                            <option value="" disabled hidden>Seleccione un estado</option>
                             <option value="habilitada">Habilitada</option>
                             <option value="finalizada">Finalizada</option>
                             <option value="pendiente">Pendiente</option>

@@ -286,6 +286,7 @@ export default function Cliente() {
                         onClick={() => {
                             if (selectedClient) {
                                 localStorage.setItem("clienteId", selectedClient.id);
+                                localStorage.setItem("nombre", selectedClient.nombre);
                                 console.log("Cliente seleccionado:", selectedClient); 
                                 console.log("ID guardado:", selectedClient?.id);
                                 setTimeout(() => {
