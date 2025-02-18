@@ -12,6 +12,7 @@ export default function Pedidos() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [modalDetalles, setModalDetalles] = useState(false);
 
     // Función para buscar un pedido por ID
     const handleSearch = async () => {
@@ -63,6 +64,15 @@ export default function Pedidos() {
             setEditingPedido({ ...selectedPedido });
         }
     };
+
+    const handleDetallesClick = () => {
+        setModalDetalles(true);
+    };
+
+    const cerrarModal = () => {
+        setModalDetalles(false);
+        setSelectedPedido(null);
+      };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -127,7 +137,7 @@ export default function Pedidos() {
                         <label className="block font-semibold">Número de pedido:</label>
                         <input
                             type="text"
-                            value={editingPedido.id}
+                            value={editingPedido.numeroPedido}
                             disabled
                             className="border border-gray-300 rounded-lg p-2 w-full"
                         />
@@ -162,11 +172,11 @@ export default function Pedidos() {
                 <table className="w-full table-auto border-collapse border border-gray-200">
                     <thead>
                         <tr className="bg-gray-100">
-                            <th className="border border-gray-300 px-4 py-2 text-left">Número</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Cliente</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Fecha</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Estado</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Total</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left w-1/8">Número</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left w-1/4">Cliente</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left w-1/4">Fecha</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left w-1/5">Estado</th>
+                            <th className="border border-gray-300 px-4 py-2 text-left w-7/40">Total</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -178,17 +188,60 @@ export default function Pedidos() {
                                 }`}
                                 onClick={() => handleRowClick(pedido)}
                             >
-                                <td className="border border-gray-300 px-4 py-2">{pedido.numero}</td>
-                                <td className="border border-gray-300 px-4 py-2">{pedido.cliente.nombre}</td>
-                                <td className="border border-gray-300 px-4 py-2">{pedido.fecha}</td>
-                                <td className="border border-gray-300 px-4 py-2">{pedido.estado}</td>
-                                <td className="border border-gray-300 px-4 py-2">{pedido.total}</td>
+                                <td className="border border-gray-300 px-4 py-2 w-1/7">{pedido.numeroPedido}</td>
+                                <td className="border border-gray-300 px-4 py-2 w-1/4">{pedido.cliente.nombre}</td>
+                                <td className="border border-gray-300 px-4 py-2 w-1/5">{pedido.fecha}</td>
+                                <td className="border border-gray-300 px-4 py-2 w-1/5">{pedido.estado}</td>
+                                <td className="border border-gray-300 px-4 py-2 w-1/5">{pedido.total}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             )}
+            {modalDetalles && selectedPedido && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
+                    <h2 className="text-xl font-bold mb-4">Detalles del Pedido</h2>
+                    <p><strong>Número:</strong> {selectedPedido.numeroPedido}</p>
+                    <p><strong>Cliente:</strong> {selectedPedido.cliente.nombre}</p>
+                    <p><strong>Fecha:</strong> {selectedPedido.fecha}</p>
+                    <p><strong>Estado:</strong> {selectedPedido.estado}</p>
+                    <p><strong>Total:</strong> ${selectedPedido.total}</p>
+                    <p><strong>Dirección de obra:</strong> {selectedPedido.obra.direccion}</p>
+                    <p><strong>observaciones:</strong> {selectedPedido.observaciones}</p>
 
+                    <h3 className="text-lg font-semibold mt-4">Productos</h3>
+                        <table className="border-collapse border border-gray-300 w-full mt-2">
+                        <thead>
+                            <tr className="bg-gray-200">
+                            <th className="border border-gray-300 px-2 py-1">Producto</th>
+                            <th className="border border-gray-300 px-2 py-1">Cantidad</th>
+                            <th className="border border-gray-300 px-2 py-1">Precio</th>
+                            <th className="border border-gray-300 px-2 py-1">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {selectedPedido.detalle.map((item, index) => (
+                            <tr key={index}>
+                                <td className="border border-gray-300 px-2 py-1">{item.producto.nombre}</td>
+                                <td className="border border-gray-300 px-2 py-1">{item.cantidad}</td>
+                                <td className="border border-gray-300 px-2 py-1">${item.producto.precio}</td>
+                                <td className="border border-gray-300 px-2 py-1">${item.precioFinal}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                        </table>
+
+
+                    <button
+                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                    onClick={cerrarModal}
+                    >
+                    Cerrar
+                    </button>
+                </div>
+                </div>
+            )}
             {selectedPedido && (
                 <div className="mt-4 flex justify-end">
                     <button
@@ -196,6 +249,12 @@ export default function Pedidos() {
                         className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
                     >
                         Editar
+                    </button>
+                    <button
+                        onClick={handleDetallesClick}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                    >
+                        Más detalles
                     </button>
                 </div>
             )}

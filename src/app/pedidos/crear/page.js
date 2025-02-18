@@ -1,7 +1,7 @@
 'use client';
 
 import { crearPedido } from "@/lib/pedidos-api";
-import { buscarTodos } from "@/lib/clientes-api";
+import { buscarObrasCliente, buscarTodos } from "@/lib/clientes-api";
 import { buscarTodosP } from "@/lib/productos-api";
 import { estadosPedido } from "@/util/estadosPedido";
 import Link from 'next/link';
@@ -11,16 +11,13 @@ import ConfirmationMessage from "@/components/ConfirmationMessage";
 export default function CrearPedido() {
     const [clientes, setClientes] = useState([]);
     const [productos, setProductos] = useState([]);
+    const [obras, setObras] = useState([]);
     const [formData, setFormData] = useState({
         cliente: {},
         detalle: [],
         total: 0,
         estado: "ACEPTADO",
-        direccionEnvio: {
-            calle: '',
-            ciudad: '',
-            codigoPostal: ''
-        }
+        obra: {}
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -33,6 +30,7 @@ export default function CrearPedido() {
                 setClientes(clientesData);
                 const productosData = await buscarTodosP();
                 setProductos(productosData);
+                const obrasData = await buscarObrasCliente(clienteSeleccionado.id);
             } catch (err) {
                 console.error("Error al obtener datos", err);
             }
@@ -40,16 +38,34 @@ export default function CrearPedido() {
         fetchData();
     }, []);
 
-    const handleClienteChange = (e) => {
+    const handleClienteChange = async (e) => {
         const clienteSeleccionado = clientes.find(c => c.id === parseInt(e.target.value));
-        setFormData(prevData => ({ ...prevData, cliente: clienteSeleccionado || {} }));
+        
+        if (!clienteSeleccionado) {
+            setFormData(prevData => ({ ...prevData, cliente: {}, obra: {} }));
+            setObras([]); // Si no hay cliente, vaciamos la lista de obras
+            return;
+        }
+    
+        setFormData(prevData => ({ ...prevData, cliente: clienteSeleccionado, obra: {} }));
+    
+        try {
+            const obrasData = await buscarObrasCliente(clienteSeleccionado.id);
+            setObras(obrasData);
+        } catch (err) {
+            console.error("Error al obtener obras del cliente", err);
+            setObras([]); // En caso de error, vaciar la lista de obras
+        }
+    };
+    const handleObraChange = (e) => {
+        const obraSeleccionada = obras.find(f => f.id === parseInt(e.target.value));
+        setFormData(prevData => ({ ...prevData, obra: obraSeleccionada || {} }));
     };
 
-    const handleDireccionChange = (e) => {
-        const { name, value } = e.target;
+    const handleObservacionesChange = (e) => {
         setFormData(prevData => ({
             ...prevData,
-            direccionEnvio: { ...prevData.direccionEnvio, [name]: value }
+            observaciones: e.target.value
         }));
     };
 
@@ -65,7 +81,12 @@ export default function CrearPedido() {
             detallesActualizados[index].precioFinal = (precioUnitario * cantidad) - descuento;
         }
 
-        setFormData(prevData => ({ ...prevData, detalle: detallesActualizados }));
+        const total = detallesActualizados.reduce((sum, detalle) => sum + (detalle.precioFinal || 0), 0)
+
+        setFormData(prevData => ({
+            ...prevData, 
+            detalle: detallesActualizados,
+            total:total }));
     };
 
     const agregarDetalle = () => {
@@ -79,11 +100,12 @@ export default function CrearPedido() {
         e.preventDefault();
         setLoading(true);
         setError('');
-
+    
+        console.log("Datos enviados:", formData); // Verifica antes de enviar
+    
         try {
             await crearPedido(formData);
-            console.log("Pedido creado:", formData);
-
+            console.log("Pedido creado exitosamente");
         } catch (error) {
             setError("Error al crear el pedido.");
             console.error("Error:", error);
@@ -92,7 +114,7 @@ export default function CrearPedido() {
             setShowMessage(true);
         }
     };
-
+    
     return (
         <div className="max-w-4xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Crear Nuevo Pedido</h1>
@@ -106,6 +128,24 @@ export default function CrearPedido() {
                         ))}
                     </select>
                 </div>
+
+                <div>
+                    <label className="block font-semibold">Obras:</label>
+                    <select value={formData.obra.id || ""} onChange={handleObraChange} className="border p-2 w-full" required>
+                        <option value="">Seleccione una obra</option>
+                        {obras.map(obra => (
+                            <option key={obra.id} value={obra.id}>{obra.direccion}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <input 
+                    type="text" 
+                    className="border p-2 w-full rounded-md" 
+                    placeholder="Ingrese observaciones..." 
+                    value={formData.observaciones || ""}
+                    onChange={handleObservacionesChange}
+                />
 
                 <div>
                     <h2 className="text-xl font-bold mb-2">Detalles del Pedido</h2>
