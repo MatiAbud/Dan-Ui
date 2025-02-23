@@ -122,6 +122,71 @@ export const eliminarCliente = async (id)=>{
       return response.json();
 };
 
+export const actualizarUsuarioHabilitado = async (id, editingUser)=>{
+  const url=`http://localhost/clientes/api/usuarios/${id}`;
+  const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      },
+      
+      body: JSON.stringify(editingUser),
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el usuario: ${response.statusText}`);
+    }
+    return response.json();
+};
+
+export const eliminarUsuarioHabilitado = async (id)=>{
+    const url=`http://localhost/clientes/api/usuarios/${id}`;
+    const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          'Access-Control-Allow-Origin': '*'
+        },
+        
+        body: JSON.stringify(id),
+      });
+    
+      if (!response.ok) {
+        throw new Error(`Error al eliminar el usuario: ${response.statusText}`);
+      }
+      return response.json();
+};
+
+
+export const agregarUsuarioHabilitado = async (usuario)=>{
+  const url=`http://localhost/clientes/api/usuarios`;
+  const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*'
+      },
+      
+      body: JSON.stringify(usuario),
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Error al crear el usuario: ${response.statusText}`);
+    }
+    return response.json();
+};
+
+export const buscarTodosUsuariosHabilitados = async ()=>{
+  const url=`http://localhost/clientes/api/usuarios/todos`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error al obtener los usuarios: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+
 export const habilitarObra = async (id)=>{
   const url=`http://localhost/clientes/api/obras/${id}/habilitar`;
   const response = await fetch(url, {

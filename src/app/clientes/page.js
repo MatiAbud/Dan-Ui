@@ -229,12 +229,6 @@ export default function Cliente() {
                         Crear nuevo cliente
                     </button>
                 </Link>
-                <button
-                onClick={handleVerUsuariosHabilitados}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">
-                Ver usuarios habilitados
-                </button>
-
             </div>
 
             {/* Mensajes de error */}
@@ -460,6 +454,22 @@ export default function Cliente() {
             {/* Botón de edición */}
             {selectedClient && !editingClient && (
                 <div className="mt-4 flex justify-end space-x-4">
+                    <button
+                        onClick={() => {
+                            if (selectedClient) {
+                                localStorage.setItem("clienteId", selectedClient.id);
+                                localStorage.setItem("nombre", selectedClient.nombre);
+                                console.log("Cliente seleccionado:", selectedClient); 
+                                console.log("ID guardado:", selectedClient?.id);
+                                setTimeout(() => {
+                                    window.location.href = "/ui/clientes/usuarios";
+                                }, 100); // Espera 100ms antes de redirigir
+                            }
+                        }}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                    >
+                        Gestionar usuarios habilitados
+                    </button>
                     <button
                         onClick={() => {
                             if (selectedClient) {
