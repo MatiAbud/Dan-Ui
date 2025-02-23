@@ -1,9 +1,10 @@
 'use client';
 
-import { actualizarCliente, buscarClienteId, buscarTodos , eliminarCliente} from "@/lib/clientes-api";
-import Link from 'next/link';
-import { useState } from "react";
 import ConfirmationMessage from "@/components/ConfirmationMessage";
+import { actualizarCliente, buscarClienteId, buscarTodos, eliminarCliente } from "@/lib/clientes-api";
+import axios from 'axios';
+import Link from 'next/link';
+import { useEffect, useState } from "react";
 
 export default function Cliente() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -15,6 +16,15 @@ export default function Cliente() {
     const [showConfirm, setShowConfirm] = useState(false);
     const [showMessage, setShowMessage] = useState(false);
     const [messageType,setMessageType] = useState(null);
+    const [clienteId, setClienteId] = useState(null);
+    const [usuariosHabilitados, setUsuariosHabilitados] = useState([]);
+    const [mostrarUsuarios, setMostrarUsuarios] = useState(false);
+    const [nuevoUsuario, setNuevoUsuario] = useState({
+        nombre: '',
+        apellido: '',
+        dni: '',
+        correoElectronico: ''
+    });
 
     const handleSearch = async () => {
         if (searchTerm.trim() === '') {
@@ -95,17 +105,17 @@ export default function Cliente() {
     const confirmDelete = (cliente) => {
         setSelectedClient(cliente);
         setShowConfirm(true);
-      };
+    };
 
-      const handleDelete = async () => {
+    const handleDelete = async () => {
         if (!selectedClient) return;
     
         try{
-          await eliminarCliente(selectedClient.id)
-          await handleSearchTodos();
+            await eliminarCliente(selectedClient.id)
+            await handleSearchTodos();
         }
         catch(error){
-          console.error("Error:", error);
+            console.error("Error:", error);
         }
         console.log("Cliente eliminado:", selectedClient);
         
@@ -113,7 +123,85 @@ export default function Cliente() {
         setShowMessage(true);
         setShowConfirm(false);
         setSelectedClient(null);
-      };
+    };
+
+    useEffect(() => {
+        axios.get(`/clientes/${clienteId}`).then(response => {
+            setCliente(response.data);
+            setUsuarios(response.data.usuariosAutorizados);
+        });
+    }, [clienteId]);
+
+    const handleVerUsuariosHabilitados = async () => {
+        if (!selectedClient) return;
+        
+        setLoading(true);
+        setError(null);
+    
+        try {
+            const data = await obtenerUsuariosHabilitados(selectedClient.id);
+            setUsuariosHabilitados(data);
+            setMostrarUsuarios(true);
+        } catch (error) {
+            console.error("Error al obtener usuarios habilitados:", error);
+            setError("No se pudieron cargar los usuarios habilitados.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleAgregarUsuario = async () => {
+        if (!selectedClient) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/clientes/${selectedClient.id}/usuarios-habilitados`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(nuevoUsuario),
+            });
+            const updatedCliente = await response.json();
+            setUsuariosHabilitados(updatedCliente.usuariosHabilitados);
+
+            setNuevoUsuario({
+                nombre: '',
+                apellido: '',
+                dni: '',
+                correoElectronico: ''
+            });
+
+        } catch (error) {
+            console.error("Error al agregar usuario habilitado:", error);
+            setError("No se pudo agregar el usuario habilitado.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteUsuario = async (usuarioId) => {
+        if (!selectedClient) return;
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`/api/clientes/${selectedClient.id}/usuarios-habilitados/${usuarioId}`, {
+                method: 'DELETE',
+            });
+            const updatedCliente = await response.json();
+            setUsuariosHabilitados(updatedCliente.usuariosHabilitados);
+
+        } catch (error) {
+            console.error("Error al eliminar usuario habilitado:", error);
+            setError("No se pudo eliminar el usuario habilitado.");
+        } finally {
+            setLoading(false);
+        }
+    };
     
 
     return (
@@ -141,6 +229,12 @@ export default function Cliente() {
                         Crear nuevo cliente
                     </button>
                 </Link>
+                <button
+                onClick={handleVerUsuariosHabilitados}
+                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">
+                Ver usuarios habilitados
+                </button>
+
             </div>
 
             {/* Mensajes de error */}
@@ -278,6 +372,90 @@ export default function Cliente() {
                     </tbody>
                 </table>
             )}
+
+            {mostrarUsuarios && (
+                <div className="mt-6">
+                    <h2 className="text-xl font-bold mb-2">Usuarios Habilitados</h2>
+                    <table className="w-full table-auto border-collapse border border-gray-200">
+                    <tbody>
+                        {usuariosHabilitados.map((usuario) => (
+                            <tr key={usuario.id} className="hover:bg-gray-50">
+                                <td className="border border-gray-300 px-4 py-2">{usuario.nombre}</td>
+                                <td className="border border-gray-300 px-4 py-2">{usuario.apellido}</td>
+                                <td className="border border-gray-300 px-4 py-2">{usuario.dni}</td>
+                                <td className="border border-gray-300 px-4 py-2">{usuario.correoElectronico}</td>
+                                <td className="border border-gray-300 px-4 py-2">
+                                    <button
+                                        onClick={() => handleDeleteUsuario(usuario.id)}
+                                        className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                     {/* Formulario para agregar nuevo usuario */}
+                <div className="mt-4">
+                    <h3 className="text-lg font-semibold mb-2">Agregar nuevo usuario</h3>
+                    <div className="space-y-2">
+                    <div className="space-y-2">
+                        <input
+                            type="text"
+                            name="nombre"
+                            placeholder="Nombre"
+                            value={nuevoUsuario.nombre}
+                            onChange={handleInputChangeUsuario}
+                            className="border border-gray-300 rounded-lg p-2 w-full"
+                            required // Añade validación de campo obligatorio
+                        />
+                        <input
+                            type="text"
+                            name="apellido"
+                            placeholder="Apellido"
+                            value={nuevoUsuario.apellido}
+                            onChange={handleInputChangeUsuario}
+                            className="border border-gray-300 rounded-lg p-2 w-full"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="dni"
+                            placeholder="DNI"
+                            value={nuevoUsuario.dni}
+                            onChange={handleInputChangeUsuario}
+                            className="border border-gray-300 rounded-lg p-2 w-full"
+                            required
+                        />
+                        <input
+                            type="email"
+                            name="correoElectronico"
+                            placeholder="Correo electrónico"
+                            value={nuevoUsuario.correoElectronico}
+                            onChange={handleInputChangeUsuario}
+                            className="border border-gray-300 rounded-lg p-2 w-full"
+                            required
+                        />
+                        <button
+                            onClick={handleAgregarUsuario}
+                            disabled={loading}
+                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-blue-300"
+                        >
+                            {loading ? "Agregando..." : "Agregar usuario"}
+                        </button>
+                    </div>
+                    </div>
+                </div>
+                    <button
+                        onClick={() => setMostrarUsuarios(false)}
+                        className="mt-4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                    >
+                        Cerrar
+                    </button>
+                </div>
+            )}
+
 
             {/* Botón de edición */}
             {selectedClient && !editingClient && (
