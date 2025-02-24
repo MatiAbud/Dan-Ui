@@ -1,15 +1,17 @@
 'use client';
 
 import ConfirmationMessage from "@/components/ConfirmationMessage";
-import { buscarObrasCliente, buscarTodos } from "@/lib/clientes-api";
+import { buscarClientesUsuario, buscarObrasCliente, buscarTodosUsuariosHabilitados } from "@/lib/clientes-api";
 import { crearPedido } from "@/lib/pedidos-api";
 import { buscarTodosP } from "@/lib/productos-api";
 import Link from 'next/link';
 import { useEffect, useState } from "react";
 
 export default function CrearPedido() {
+    const [usuarios, setUsuarios] = useState([]);
     const [clientes, setClientes] = useState([]);
     const [productos, setProductos] = useState([]);
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState(null);
     const [obras, setObras] = useState([]);
     const [formData, setFormData] = useState({
         cliente: {},
@@ -25,46 +27,51 @@ export default function CrearPedido() {
     useEffect(() => {
         async function fetchData() {
             try {
-                const clientesData = await buscarTodos();
-                setClientes(clientesData);
+                const usuariosData = await buscarTodosUsuariosHabilitados();
+                setUsuarios(usuariosData);
                 const productosData = await buscarTodosP();
                 setProductos(productosData);
-                // Verificar si el usuario está habilitado
-                const usuarioId = obtenerUsuarioId(); // Obtener el ID del usuario desde el token
-                const usuariosHabilitados = await buscarTodosUsuariosHabilitados();
-                const usuarioEncontrado = usuariosHabilitados.find(usuario => usuario.id === usuarioId);
-                
-                if (!usuarioEncontrado) {
-                    setUsuarioHabilitado(false);
-                }
-                const obrasData = await buscarObrasCliente(clienteSeleccionado.id);
-                setObras(obrasData);
             } catch (err) {
-                console.error("Error al obtener datos", err);
+                console.error("Error al obtener usuarios", err);
             }
         }
         fetchData();
     }, []);
 
+
+    const handleUsuarioChange = async (e) => {
+        const usuarioId = parseInt(e.target.value);
+        setUsuarioSeleccionado(usuarioId);
+
+        try {
+            const cliente = await buscarClientesUsuario(usuarioId);
+
+            const clientes = cliente ? [cliente] : [];
+
+            clientes.map(cliente => console.log(cliente)); 
+            setClientes(clientes);
+        } catch (err) {
+            console.error("Error al obtener clientes", err);
+        }
+    };
+
     const handleClienteChange = async (e) => {
         const clienteSeleccionado = clientes.find(c => c.id === parseInt(e.target.value));
-        
         if (!clienteSeleccionado) {
             setFormData(prevData => ({ ...prevData, cliente: {}, obra: {} }));
-            setObras([]); // Si no hay cliente, vaciamos la lista de obras
+            setObras([]);
             return;
         }
-    
         setFormData(prevData => ({ ...prevData, cliente: clienteSeleccionado, obra: {} }));
-    
         try {
             const obrasData = await buscarObrasCliente(clienteSeleccionado.id);
             setObras(obrasData);
         } catch (err) {
             console.error("Error al obtener obras del cliente", err);
-            setObras([]); // En caso de error, vaciar la lista de obras
+            setObras([]);
         }
     };
+
     const handleObraChange = (e) => {
         const obraSeleccionada = obras.find(f => f.id === parseInt(e.target.value));
         setFormData(prevData => ({ ...prevData, obra: obraSeleccionada || {} }));
@@ -106,11 +113,6 @@ export default function CrearPedido() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!usuarioHabilitado) {
-            setError("No tienes permiso para crear pedidos.");
-            return; // No se envía el formulario si el usuario no está habilitado
-        }
         setLoading(true);
         setError('');
     
@@ -132,6 +134,16 @@ export default function CrearPedido() {
         <div className="max-w-4xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Crear Nuevo Pedido</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                    <label className="block font-semibold">Usuario:</label>
+                    <select value={usuarioSeleccionado || ""} onChange={handleUsuarioChange} className="border p-2 w-full" required>
+                        <option value="">Seleccione un usuario</option>
+                        {usuarios.map(usuario => (
+                            <option key={usuario.id} value={usuario.id}>{usuario.nombre}</option>
+                        ))}
+                    </select>
+                </div>
+                
                 <div>
                     <label className="block font-semibold">Cliente:</label>
                     <select value={formData.cliente.id || ""} onChange={handleClienteChange} className="border p-2 w-full" required>

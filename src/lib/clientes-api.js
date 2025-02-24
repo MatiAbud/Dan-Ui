@@ -8,6 +8,15 @@ export const buscarTodos = async ()=>{
   return response.json();
 };
 
+export const buscarClientesUsuario = async (idUsuario)=>{
+  const url=`http://localhost/clientes/api/usuarios/cliente/${idUsuario}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error al obtener el clietne de usuario: ${response.statusText}`);
+  }
+  return response.json();
+};
+
 export const buscarObrasCliente = async (id)=>{
   const url=`http://localhost/clientes/api/obras/clientes/${id}`;
   const response = await fetch(url);
