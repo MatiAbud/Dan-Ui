@@ -186,6 +186,16 @@ export const buscarTodosUsuariosHabilitados = async ()=>{
   return response.json();
 };
 
+export const obtenerUsuarioActual = async () => {
+  const url = `http://localhost/clientes/api/usuarios/actual`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error al obtener el usuario actual: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+
 
 export const habilitarObra = async (id)=>{
   const url=`http://localhost/clientes/api/obras/${id}/habilitar`;

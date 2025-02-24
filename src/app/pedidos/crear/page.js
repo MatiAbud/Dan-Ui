@@ -1,12 +1,11 @@
 'use client';
 
-import { crearPedido } from "@/lib/pedidos-api";
-import { buscarObrasCliente, buscarTodos } from "@/lib/clientes-api";
-import { buscarTodosP } from "@/lib/productos-api";
-import { estadosPedido } from "@/util/estadosPedido";
-import Link from 'next/link';
-import { useState, useEffect } from "react";
 import ConfirmationMessage from "@/components/ConfirmationMessage";
+import { buscarObrasCliente, buscarTodos } from "@/lib/clientes-api";
+import { crearPedido } from "@/lib/pedidos-api";
+import { buscarTodosP } from "@/lib/productos-api";
+import Link from 'next/link';
+import { useEffect, useState } from "react";
 
 export default function CrearPedido() {
     const [clientes, setClientes] = useState([]);
@@ -30,7 +29,16 @@ export default function CrearPedido() {
                 setClientes(clientesData);
                 const productosData = await buscarTodosP();
                 setProductos(productosData);
+                // Verificar si el usuario está habilitado
+                const usuarioId = obtenerUsuarioId(); // Obtener el ID del usuario desde el token
+                const usuariosHabilitados = await buscarTodosUsuariosHabilitados();
+                const usuarioEncontrado = usuariosHabilitados.find(usuario => usuario.id === usuarioId);
+                
+                if (!usuarioEncontrado) {
+                    setUsuarioHabilitado(false);
+                }
                 const obrasData = await buscarObrasCliente(clienteSeleccionado.id);
+                setObras(obrasData);
             } catch (err) {
                 console.error("Error al obtener datos", err);
             }
@@ -98,6 +106,11 @@ export default function CrearPedido() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!usuarioHabilitado) {
+            setError("No tienes permiso para crear pedidos.");
+            return; // No se envía el formulario si el usuario no está habilitado
+        }
         setLoading(true);
         setError('');
     
