@@ -1,40 +1,61 @@
 'use client';
 
-import { actualizarPedido, buscarPedidoPorId, buscarTodosLosPedidos, entregarPedido, cancelarPedido } from "@/lib/pedidos-api"; // Importa las funciones de API
+import {buscarPedidoPorId, buscarTodosLosPedidos, buscarPedidosEstado, buscarPedidosCliente, entregarPedido, cancelarPedido } from "@/lib/pedidos-api"; // Importa las funciones de API
 import Link from 'next/link';
 import { useState } from "react";
 
 export default function Pedidos() {
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchEstado, setSearchEstado] = useState('');
+    const [searchCliente, setSearchCliente] = useState('');
     const [results, setResults] = useState([]);
     const [selectedPedido, setSelectedPedido] = useState(null);
     const [selectedEstado, setSelectedEstado] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [modalDetalles, setModalDetalles] = useState(false);
     const [modalEstado, setModalEstado] = useState(false);
 
     // Función para buscar un pedido por ID
     const handleSearch = async () => {
-        if (searchTerm.trim() === '') {
-            await handleSearchTodos();
-            return;
+        if (searchEstado.trim() === '' ) {
+            if(searchCliente.trim() === ''){
+                await handleSearchTodos();
+                return;
+            }
+            else{
+                setLoading(true);
+                setError(null);
+                console.log("Buscando pedidos de cliente:", searchCliente);
+                try{
+                    const data = await buscarPedidosCliente(searchCliente);
+                    console.log("Pedidos encontrado:", data);
+                    setResults([data]);
+                }
+                catch(error){
+                    console.error("Error al buscar pedidos", error);
+                }
+                finally{
+                    setLoading(false);
+                    setSearchCliente(null);
+                }
+            }
         }
-
-        console.log("Buscando pedido con número de pedido:", searchTerm);
-
-        setLoading(true);
-        setError('');
-        try {
-            const data = await buscarPedidoPorId(searchTerm);
-            console.log("Pedido encontrado:", data);
-            setResults([data]);
-        } catch (error) {
-            setError("Error al buscar el pedido.");
-            console.error("Error al buscar el pedido:", error);
-        } finally {
-            setLoading(false);
+        else{
+            setLoading(true);
+            setError(null);
+            console.log("Buscando pedidos con estado:", searchEstado);
+            try{
+                const data = await buscarPedidosEstado(searchEstado);
+                console.log("Pedidos encontrado:", data);
+                setResults([data]);
+            }
+            catch(error){
+                console.error("Error al buscar pedidos", error);
+            }
+            finally{
+                setLoading(false);
+                setSearchEstado(null);
+            }
         }
     };
 
@@ -75,12 +96,15 @@ export default function Pedidos() {
 
     const handleCambioEstado = async () =>{
         try{
-            if(selectedEstado=="ENTREGADO"){
+            console.log("antes if");
+            if(selectedEstado == "ENTREGADO"){
+                console.log("entre al if");
                 entregarPedido(selectedPedido.id);
             }
             else if (selectedEstado== "CANCELADO"){
                 cancelarPedido(selectedPedido.id)
             }
+            handleSearchTodos();
         }
         catch(error){
             setError("Error al cambiar estado del pedido.");
@@ -92,38 +116,41 @@ export default function Pedidos() {
             setModalEstado(false);
         }
     }
-
-    const handleSave = async () => {
-        setShowConfirmationModal(false); // Cierra el modal
-        try {
-            await actualizarPedido(editingPedido.id, editingPedido);
-            console.log("Pedido actualizado:", editingPedido);
-
-            // Actualiza el estado de los resultados o el pedido seleccionado
-            setResults((prevResults) =>
-                prevResults.map((pedido) =>
-                    pedido.id === editingPedido.id ? editingPedido : pedido
-                )
-            );
-            setSelectedPedido(null);
-            setEditingPedido(null);
-        } catch (error) {
-            setError("Error al guardar el pedido.");
-            console.error("Error:", error);
-        }
-    };
-
     return (
         <div className="max-w-4xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Pedidos</h1>
             <div className="flex items-center space-x-4 mb-6">
                 <input
-                    type="text"
-                    placeholder="Buscar pedido por número"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="number"
+                placeholder="Buscar pedido por cliente"
+                value={searchCliente}
+                onChange={(e) => {
+                    setSearchCliente(e.target.value);
+                    if (e.target.value !== "") {
+                        setSearchEstado(""); // Borra la selección del select
+                    }
+                }}
+                disabled={searchEstado !== ""}
+                className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+
+                <select
+                    value={searchEstado}
+                    onChange={(e) => {
+                        setSearchEstado(e.target.value);
+                        if (e.target.value !== "") {
+                            setSearchCliente(""); // Borra el input si se selecciona un estado
+                        }
+                    }}
+                    disabled={searchCliente !== ""}
+                    className="border border-gray-300 rounded-lg p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <option value="">Seleccionar estado</option> {/* Opción vacía inicial */}
+                    <option value="ACEPTADO">Aceptado</option>
+                    <option value="RECHAZADO">Rechazado</option>
+                    <option value="ENTREGADO">Entregado</option>
+                    <option value="CANCELADO">Cancelado</option>
+                </select>
                 <button
                     onClick={handleSearch}
                     className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
@@ -215,44 +242,25 @@ export default function Pedidos() {
                 <div className="mt-4 flex justify-end space-x-4">
                     <button
                         onClick={() => setModalDetalles(true)}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
                     >
                         Más detalles
                     </button>
                     
                     <button
                         onClick={() => setModalEstado(true)}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                        disabled={selectedPedido.estado !== "EN_PREPARACION"}
+                        className={`px-4 py-2 rounded-lg transition 
+                            ${selectedPedido.estado !== "EN_PREPARACION" 
+                                ? "bg-gray-400 cursor-not-allowed" 
+                                : "bg-green-500 hover:bg-green-600 text-white"
+                            }`}
                     >
                         Actualizar estado
                     </button>
 
                 </div>
             )}
-
-            {showConfirmationModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white p-6 rounded-lg">
-                        <h2 className="text-xl font-bold mb-4">¿Estás seguro?</h2>
-                        <p>¿Deseas guardar los cambios realizados en este pedido?</p>
-                        <div className="flex justify-end space-x-4 mt-4">
-                            <button
-                                onClick={() => setShowConfirmationModal(false)}
-                                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-                            >
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {modalEstado && (
                             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                             <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
@@ -265,20 +273,22 @@ export default function Pedidos() {
                                     <option value="ENTREGADO">Entregado</option>
                                     <option value="CANCELADO">Cancelado</option>
                                 </select>
-                                <button
-                                className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
-                                onClick={()=> handleCambioEstado()}
-                                >
-                                Guardar
-                                </button>                               
-                                <button
-                                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                                onClick={()=> {setModalEstado(false);
-                                    setSelectedPedido(null);
-                                }}
-                                >
-                                Cancelar
-                                </button>
+                                <div className="mt-4 flex justify-end space-x-4">
+                                    <button
+                                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                                        onClick={()=> handleCambioEstado()}
+                                    >
+                                    Guardar
+                                    </button>                               
+                                    <button
+                                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                                        onClick={()=> {setModalEstado(false);
+                                            setSelectedPedido(null);
+                                        }}
+                                        >
+                                    Cancelar
+                                    </button>
+                                </div>
                             </div>
                             </div>
                         )}

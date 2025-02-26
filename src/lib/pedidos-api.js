@@ -17,6 +17,24 @@ export const buscarPedidoPorId = async (id) => {
     }
     return response.json();
   };
+
+  export const buscarPedidosEstado = async (estado) => {
+    const url = `http://localhost/pedidos/api/pedidos/estado/${estado}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Error al obtener los pedidos: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  export const buscarPedidosCliente = async (idCliente) => {
+    const url = `http://localhost/pedidos/api/pedidos/cliente/${idCliente}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Error al obtener los pedidos: ${response.statusText}`);
+    }
+    return response.json();
+  };
   
   export const crearPedido = async (pedido) => {  // 'pedido' object
     const url = `http://localhost/pedidos/api/pedidos`;
