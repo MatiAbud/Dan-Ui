@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarPedido, buscarPedidoPorId, buscarTodosLosPedidos } from "@/lib/pedidos-api"; // Importa las funciones de API
+import { actualizarPedido, buscarPedidoPorId, buscarTodosLosPedidos, entregarPedido, cancelarPedido } from "@/lib/pedidos-api"; // Importa las funciones de API
 import Link from 'next/link';
 import { useState } from "react";
 
@@ -8,11 +8,12 @@ export default function Pedidos() {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState([]);
     const [selectedPedido, setSelectedPedido] = useState(null);
-    const [editingPedido, setEditingPedido] = useState(null);
+    const [selectedEstado, setSelectedEstado] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [modalDetalles, setModalDetalles] = useState(false);
+    const [modalEstado, setModalEstado] = useState(false);
 
     // Función para buscar un pedido por ID
     const handleSearch = async () => {
@@ -59,16 +60,6 @@ export default function Pedidos() {
         setSelectedPedido(pedido);
     };
 
-    const handleEditClick = () => {
-        if (selectedPedido) {
-            setEditingPedido({ ...selectedPedido });
-        }
-    };
-
-    const handleDetallesClick = () => {
-        setModalDetalles(true);
-    };
-
     const cerrarModal = () => {
         setModalDetalles(false);
         setSelectedPedido(null);
@@ -81,6 +72,26 @@ export default function Pedidos() {
             [name]: value,
         }));
     };
+
+    const handleCambioEstado = async () =>{
+        try{
+            if(selectedEstado=="ENTREGADO"){
+                entregarPedido(selectedPedido.id);
+            }
+            else if (selectedEstado== "CANCELADO"){
+                cancelarPedido(selectedPedido.id)
+            }
+        }
+        catch(error){
+            setError("Error al cambiar estado del pedido.");
+            console.error("Error:", error);
+        }
+        finally{
+            setSelectedEstado(null);
+            setSelectedPedido(null);
+            setModalEstado(false);
+        }
+    }
 
     const handleSave = async () => {
         setShowConfirmationModal(false); // Cierra el modal
@@ -128,46 +139,6 @@ export default function Pedidos() {
             </div>
 
             {error && <div className="text-red-500">{error}</div>}
-
-            {editingPedido ? (
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold mb-2">Editar pedido</h2>
-                    {/* Formulario para editar el pedido */}
-                    <div>
-                        <label className="block font-semibold">Número de pedido:</label>
-                        <input
-                            type="text"
-                            value={editingPedido.numeroPedido}
-                            disabled
-                            className="border border-gray-300 rounded-lg p-2 w-full"
-                        />
-                    </div>
-                    <div>
-                        <label className="block font-semibold">Cliente:</label>
-                        <input
-                            type="text"
-                            name="cliente"
-                            value={editingPedido.cliente.nombre}
-                            onChange={handleInputChange}
-                            className="border border-gray-300 rounded-lg p-2 w-full"
-                        />
-                    </div>
-                    <div className="flex justify-end space-x-4">
-                        <button
-                            onClick={() => setEditingPedido(null)}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={() => setShowConfirmationModal(true)}
-                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-                        >
-                            Guardar
-                        </button>
-                    </div>
-                </div>
-            ) : (
                 <table className="w-full table-auto border-collapse border border-gray-200">
                     <thead>
                         <tr className="bg-gray-100">
@@ -196,7 +167,6 @@ export default function Pedidos() {
                         ))}
                     </tbody>
                 </table>
-            )}
             {modalDetalles && selectedPedido && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
@@ -244,17 +214,17 @@ export default function Pedidos() {
             {selectedPedido && (
                 <div className="mt-4 flex justify-end space-x-4">
                     <button
-                        onClick={handleDetallesClick}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                        onClick={() => setModalDetalles(true)}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
                     >
                         Más detalles
                     </button>
                     
                     <button
-                        onClick={handleEditClick}
+                        onClick={() => setModalEstado(true)}
                         className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
                     >
-                        Editar
+                        Actualizar estado
                     </button>
 
                 </div>
@@ -282,6 +252,36 @@ export default function Pedidos() {
                     </div>
                 </div>
             )}
+
+            {modalEstado && (
+                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                            <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
+                                <h2 className="text-xl font-bold mb-4">Seleccione nuevo estado</h2>
+                                <select
+                                    value={selectedEstado}
+                                    onChange={(e) => setSelectedEstado(e.target.value)}
+                                    className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                    <option value="ENTREGADO">Entregado</option>
+                                    <option value="CANCELADO">Cancelado</option>
+                                </select>
+                                <button
+                                className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700"
+                                onClick={()=> handleCambioEstado()}
+                                >
+                                Guardar
+                                </button>                               
+                                <button
+                                className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                                onClick={()=> {setModalEstado(false);
+                                    setSelectedPedido(null);
+                                }}
+                                >
+                                Cancelar
+                                </button>
+                            </div>
+                            </div>
+                        )}
         </div>
     );
 }

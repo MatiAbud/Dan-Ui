@@ -49,6 +49,36 @@ export const buscarPedidoPorId = async (id) => {
     }
     return response.json();
   };
+
+  export const cancelarPedido = async (id) => { // 'pedido' object
+    const url = `http://localhost/pedidos/api/pedidos/${id}/cancelar`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*' // Only for development
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el pedido: ${response.statusText}`);
+    }
+    return response.json();
+  };
+
+  export const entregarPedido = async (id) => { // 'pedido' object
+    const url = `http://localhost/pedidos/api/pedidos/${id}/entregar`;
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Access-Control-Allow-Origin': '*' // Only for development
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`Error al actualizar el pedido: ${response.statusText}`);
+    }
+    return response.json();
+  };
   
   export const borrarPedido = async (id) => {
     const url = `http://localhost/pedidos/api/pedidos/${id}`;
@@ -63,6 +93,8 @@ export const buscarPedidoPorId = async (id) => {
       throw new Error(`Error al eliminar el pedido: ${response.statusText}`);
     }
   };
+
+
   
   
   // Example of a 'pedido' object structure (adapt to your API)

@@ -1,6 +1,6 @@
 'use client';
 
-import { actualizarProducto, buscarProductoId, buscarTodosP, borrarProducto, buscarProductoNombre} from "@/lib/productos-api";
+import { actualizarProducto, buscarProductoId, buscarTodosP, borrarProducto, buscarProductoNombre, provision} from "@/lib/productos-api";
 import Link from 'next/link';
 import { useState } from 'react';
 import ConfirmationMessage from "@/components/ConfirmationMessage";
@@ -16,10 +16,16 @@ export default function Productos() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [editingProduct, setEditingProduct] = useState(null);
   const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [messageType, setMessageType] = useState(null);
+  const [showProvision, setShowProvision] = useState(false);
+  const [precioNuevo, setPrecioNuevo] = useState(null);
+  const [stockNuevo, setStockNuevo] = useState(null);
+  const [showButtons, setShowButtons] = useState(true);
+
 
   const handleSearch = async () => {
     if (searchTerm.trim() === '' && nombre.trim()=== '') {
@@ -90,7 +96,37 @@ export default function Productos() {
 
   const handleEditClick = () => {
     if (selectedProduct) {
+      setShowButtons(false);
       setEditingProduct({ ...selectedProduct });
+    }
+  };
+
+  const handleProvision = async () => {
+    if(precioNuevo==null || stockNuevo==null){
+
+    }
+    const newStock={
+      idProducto:selectedProduct.id,
+      precio:precioNuevo,
+      cantidad:stockNuevo
+    };
+
+    setLoading(true);
+    setError(null);
+
+    try{
+      await provision(newStock);
+      await handleSearchTodos();
+      console.log(newStock);
+    }catch(error){
+      console.error("Error:", error);
+      setError("No se pudo actualizar el stock. Intenta nuevamente más tarde.");
+    }finally{
+      setShowProvision(false);
+      setPrecioNuevo(0);
+      setStockNuevo(0);
+      setSelectedProduct(null);
+      setLoading(false);
     }
   };
 
@@ -111,7 +147,6 @@ export default function Productos() {
     try{
       await actualizarProducto(editingProduct.id, editingProduct);
       await handleSearchTodos();
-
     }
     catch (error) {
       console.error("Error:", error);
@@ -121,6 +156,7 @@ export default function Productos() {
     
     setMessageType("editar");
     setShowMessage(true);
+    setShowButtons(true);
     setSelectedProduct(null);
     setEditingProduct(null);
     
@@ -282,6 +318,7 @@ export default function Productos() {
                 type="number"
                 name="stockActual"
                 value={editingProduct.stockActual}
+                disabled
                 onChange={handleInputChange}
                 className="border border-gray-300 rounded-lg p-2 w-full"
               />
@@ -307,18 +344,21 @@ export default function Productos() {
               />
             </div>
             <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setEditingProduct(null)}
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-              >
-                Cancelar
-              </button>
-              <button
+               <button
                 onClick={handleSave}
                 disabled={loading}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-blue-300"
-            >
+                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition disabled:bg-blue-300"
+              >
                 {loading ? "Guardando..." : "Guardar"}
+              </button>
+              <button
+                onClick={() => {setEditingProduct(null);
+                  setShowButtons(true);
+                  setSelectedProduct(null);
+                }}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+              >
+                Cancelar
               </button>
             </div>
           </div>
@@ -362,8 +402,14 @@ export default function Productos() {
         </table>
       )}
 
-      {selectedProduct && (
+      {selectedProduct && showButtons &&(
         <div className="mt-4 flex justify-end space-x-4">
+          <button
+            onClick={() => setShowProvision(true)}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+          > 
+            Provisión
+          </button>
           <button
             onClick={handleEditClick}
             className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
@@ -410,6 +456,76 @@ export default function Productos() {
           type="success"
         />
       )}
+{showProvision && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col overflow-hidden min-h-[250px]">
+      <h2 className="text-lg font-semibold mb-4">Provisión</h2>
+      
+      {/* Input de Precio */}
+      <div className="flex flex-col">
+        <label className="block font-semibold mb-1">Precio:</label>
+        <input
+          type="number"
+          placeholder="Ingrese nuevo precio"
+          value={precioNuevo}
+          onChange={(e) => {
+            const value = parseFloat(e.target.value);
+            setPrecioNuevo(value > 0 ? value : "");
+          }}
+          className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-red-500 text-sm h-5">
+          {precioNuevo === "" ? "Ingrese un precio válido" : ""}
+        </p>
+      </div>
+
+      {/* Input de Cantidad */}
+      <div className="flex flex-col">
+        <label className="block font-semibold mb-1">Cantidad:</label>
+        <input
+          type="number"
+          placeholder="Ingrese cantidad"
+          value={stockNuevo}
+          onChange={(e) => {
+            const value = parseInt(e.target.value, 10);
+            setStockNuevo(value > 0 ? value : "");
+          }}
+          className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-red-500 text-sm h-5">
+          {stockNuevo === "" ? "Ingrese una cantidad válida" : ""}
+        </p>
+      </div>
+
+      {/* Botones */}
+      <div className="mt-4 flex justify-center space-x-4">
+        <button
+          onClick={handleProvision}
+          disabled={precioNuevo === "" || stockNuevo === ""}
+          className={`px-4 py-2 rounded-lg transition ${
+            precioNuevo === "" || stockNuevo === ""
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-500 text-white hover:bg-green-600"
+          }`}
+        >
+          Aceptar
+        </button>
+        <button
+          onClick={() => {
+            setShowProvision(false);
+            setSelectedProduct(null);
+            setPrecioNuevo(null);
+            setStockNuevo(null);
+          }}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
   

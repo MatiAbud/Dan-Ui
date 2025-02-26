@@ -48,6 +48,24 @@ export const actualizarProducto = async (id, editingProduct) => {
   return response.json();
 };
 
+export const provision = async (stockUpdate) => {
+  const url = `http://localhost/productos/api/productos/provision`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      'Access-Control-Allow-Origin': '*'
+    },
+    
+    body: JSON.stringify(stockUpdate),
+  });
+  if (!response.ok) {
+    throw new Error(`Error al actualizar el producto: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+
 export const crearProducto = async (product) => {
   const url = `http://localhost/productos/api/productos`;
   const response = await fetch(url, {
