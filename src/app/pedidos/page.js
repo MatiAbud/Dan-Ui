@@ -9,7 +9,7 @@ export default function Pedidos() {
     const [searchCliente, setSearchCliente] = useState('');
     const [results, setResults] = useState([]);
     const [selectedPedido, setSelectedPedido] = useState(null);
-    const [selectedEstado, setSelectedEstado] = useState(null);
+    const [selectedEstado, setSelectedEstado] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [modalDetalles, setModalDetalles] = useState(false);
@@ -29,7 +29,7 @@ export default function Pedidos() {
                 try{
                     const data = await buscarPedidosCliente(searchCliente);
                     console.log("Pedidos encontrado:", data);
-                    setResults([data]);
+                    setResults(data);
                 }
                 catch(error){
                     console.error("Error al buscar pedidos", error);
@@ -47,7 +47,7 @@ export default function Pedidos() {
             try{
                 const data = await buscarPedidosEstado(searchEstado);
                 console.log("Pedidos encontrado:", data);
-                setResults([data]);
+                setResults(data);
             }
             catch(error){
                 console.error("Error al buscar pedidos", error);
@@ -97,6 +97,7 @@ export default function Pedidos() {
     const handleCambioEstado = async () =>{
         try{
             console.log("antes if");
+            console.log(selectedEstado);
             if(selectedEstado == "ENTREGADO"){
                 console.log("entre al if");
                 entregarPedido(selectedPedido.id);
@@ -104,7 +105,6 @@ export default function Pedidos() {
             else if (selectedEstado== "CANCELADO"){
                 cancelarPedido(selectedPedido.id)
             }
-            handleSearchTodos();
         }
         catch(error){
             setError("Error al cambiar estado del pedido.");
@@ -114,6 +114,7 @@ export default function Pedidos() {
             setSelectedEstado(null);
             setSelectedPedido(null);
             setModalEstado(false);
+            handleSearchTodos();
         }
     }
     return (
@@ -127,7 +128,7 @@ export default function Pedidos() {
                 onChange={(e) => {
                     setSearchCliente(e.target.value);
                     if (e.target.value !== "") {
-                        setSearchEstado(""); // Borra la selección del select
+                        setSearchEstado(""); 
                     }
                 }}
                 disabled={searchEstado !== ""}
@@ -139,7 +140,7 @@ export default function Pedidos() {
                     onChange={(e) => {
                         setSearchEstado(e.target.value);
                         if (e.target.value !== "") {
-                            setSearchCliente(""); // Borra el input si se selecciona un estado
+                            setSearchCliente(""); 
                         }
                     }}
                     disabled={searchCliente !== ""}
@@ -147,6 +148,7 @@ export default function Pedidos() {
                 >
                     <option value="">Seleccionar estado</option> {/* Opción vacía inicial */}
                     <option value="ACEPTADO">Aceptado</option>
+                    <option value="EN_PREPARACION">En Preparación</option>
                     <option value="RECHAZADO">Rechazado</option>
                     <option value="ENTREGADO">Entregado</option>
                     <option value="CANCELADO">Cancelado</option>
@@ -196,7 +198,7 @@ export default function Pedidos() {
                 </table>
             {modalDetalles && selectedPedido && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white p-6 rounded-lg shadow-lg w-[400px]">
+                <div className="bg-white p-6 rounded-lg shadow-lg w-[800px] max-w-full overflow-auto">
                     <h2 className="text-xl font-bold mb-4">Detalles del Pedido</h2>
                     <p><strong>Número:</strong> {selectedPedido.numeroPedido}</p>
                     <p><strong>Cliente:</strong> {selectedPedido.cliente.nombre}</p>
@@ -227,14 +229,36 @@ export default function Pedidos() {
                             ))}
                         </tbody>
                         </table>
+                        <h3 className="text-lg font-semibold mt-4">Historial de estados</h3>
+                        <table className="border-collapse border border-gray-300 w-full mt-2">
+                        <thead>
+                            <tr className="bg-gray-200">
+                            <th className="border border-gray-300 px-2 py-1">Estado</th>
+                            <th className="border border-gray-300 px-2 py-1">Fecha</th>
+                            <th className="border border-gray-300 px-2 py-1">Detalle</th>
+                            <th className="border border-gray-300 px-2 py-1">Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {selectedPedido.historialEstado.map((item, index) => (
+                            <tr key={index}>
+                                <td className="border border-gray-300 px-2 py-1">{item.estado}</td>
+                                <td className="border border-gray-300 px-2 py-1">{item.fechaEstado}</td>
+                                <td className="border border-gray-300 px-2 py-1">{item.detalle}</td>
+                                <td className="border border-gray-300 px-2 py-1">{item.usuarioEstado}</td>
+                            </tr>
+                            ))}
+                        </tbody>
+                        </table>
 
-
-                    <button
-                    className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
-                    onClick={cerrarModal}
-                    >
-                    Cerrar
-                    </button>
+                    <div className="mt-4 flex justify-end space-x-4">          
+                        <button
+                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                        onClick={cerrarModal}
+                        >
+                        Cerrar
+                        </button>
+                    </div>
                 </div>
                 </div>
             )}
@@ -253,7 +277,7 @@ export default function Pedidos() {
                         className={`px-4 py-2 rounded-lg transition 
                             ${selectedPedido.estado !== "EN_PREPARACION" 
                                 ? "bg-gray-400 cursor-not-allowed" 
-                                : "bg-green-500 hover:bg-green-600 text-white"
+                                : "bg-yellow-500 hover:bg-yellow-600 text-white"
                             }`}
                     >
                         Actualizar estado
@@ -267,9 +291,12 @@ export default function Pedidos() {
                                 <h2 className="text-xl font-bold mb-4">Seleccione nuevo estado</h2>
                                 <select
                                     value={selectedEstado}
-                                    onChange={(e) => setSelectedEstado(e.target.value)}
+                                    onChange={(e) => {setSelectedEstado(e.target.value);
+                                        console.log("Nuevo estado seleccionado:", e.target.value);}
+                                    }
                                     className="border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
+                                    <option value='' disabled={selectedEstado !== ''}>Seleccione un estado</option>
                                     <option value="ENTREGADO">Entregado</option>
                                     <option value="CANCELADO">Cancelado</option>
                                 </select>
