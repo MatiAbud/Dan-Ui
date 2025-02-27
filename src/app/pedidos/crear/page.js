@@ -92,8 +92,10 @@ export default function CrearPedido() {
         if (name === "cantidad" || name === "descuento") {
             const precioUnitario = parseFloat(detallesActualizados[index].producto.precio || 0);
             const cantidad = parseInt(detallesActualizados[index].cantidad || 1);
-            const descuento = parseFloat(detallesActualizados[index].descuento || 0);
-            detallesActualizados[index].precioFinal = (precioUnitario * cantidad) - descuento;
+            const descuento = parseFloat(detallesActualizados[index].producto.descuentoPromocional || 0);
+            detallesActualizados[index].descuento=descuento;
+            detallesActualizados[index].precioUnitario=precioUnitario;
+            detallesActualizados[index].precioFinal =(precioUnitario - ((precioUnitario*descuento)/100))*cantidad;
         }
 
         const total = detallesActualizados.reduce((sum, detalle) => sum + (detalle.precioFinal || 0), 0)
@@ -188,8 +190,8 @@ export default function CrearPedido() {
                             </select>
                             <label>Cantidad:</label>
                             <input type="number" name="cantidad" value={detalle.cantidad} onChange={(e) => handleDetalleChange(index, e)} className="border p-2 w-full" required />
-                            <label>Descuento:</label>
-                            <input type="number" name="descuento" value={detalle.descuento} onChange={(e) => handleDetalleChange(index, e)} className="border p-2 w-full" />
+                            <p>Precio Unitario: {detalle.precioUnitario} </p>
+                            <p>Descuento: {detalle.descuento} </p>
                             <p>Precio Final: {detalle.precioFinal}</p>
                         </div>
                     ))}

@@ -222,6 +222,7 @@ export const habilitarObra = async (id)=>{
     return response.json();
 };
 
+
 export const finalizarObra = async (id)=>{
   const url=`http://localhost/clientes/api/obras/${id}/finalizar`;
   const response = await fetch(url, {
