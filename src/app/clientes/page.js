@@ -93,13 +93,12 @@ export default function Cliente() {
             console.error("Error al actualizar el cliente:", error);
             setError("No se pudo actualizar el cliente. Intenta nuevamente más tarde.");
         }
-        console.log("Cliente actualizado:", editingClient);
-
-        setMessageType("editar");
-        setShowMessage(true);
-        setSelectedClient(null);
-        setEditingClient(null);
-        
+            console.log("Cliente actualizado:", editingClient);
+            setMessageType("editar");
+            setShowMessage(true);
+            setSelectedClient(null);
+            setEditingClient(null);
+       
     };
 
     const confirmDelete = (cliente) => {
@@ -117,12 +116,12 @@ export default function Cliente() {
         catch(error){
             console.error("Error:", error);
         }
-        console.log("Cliente eliminado:", selectedClient);
-        
-        setMessageType("eliminar");
-        setShowMessage(true);
-        setShowConfirm(false);
-        setSelectedClient(null);
+
+            console.log("Cliente eliminado:", selectedClient);
+            setMessageType("eliminar");
+            setShowMessage(true);
+            setShowConfirm(false);
+            setSelectedClient(null);
     };
 
     useEffect(() => {
@@ -315,17 +314,17 @@ export default function Cliente() {
                     </div>
                     <div className="flex justify-end space-x-4 mt-4">
                         <button
+                            onClick={handleSave}
+                            disabled={loading}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition disabled:bg-blue-300"
+                        >
+                            {loading ? "Guardando..." : "Guardar"}
+                        </button>
+                        <button
                             onClick={() => setEditingClient(null)}
                             className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                         >
                             Cancelar
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={loading}
-                            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition disabled:bg-blue-300"
-                        >
-                            {loading ? "Guardando..." : "Guardar"}
                         </button>
                     </div>
                 </div>

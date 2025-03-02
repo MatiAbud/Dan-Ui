@@ -157,14 +157,11 @@ export const eliminarUsuarioHabilitado = async (id)=>{
           "Content-Type": "application/json",
           'Access-Control-Allow-Origin': '*'
         },
-        
-        body: JSON.stringify(id),
       });
-    
-      if (!response.ok) {
-        throw new Error(`Error al eliminar el usuario: ${response.statusText}`);
-      }
-      return response.json();
+    if (response.status === 204) {
+      return { message: "Usuario eliminado correctamente" };
+  }
+  return response.json();
 };
 
 
@@ -188,6 +185,15 @@ export const agregarUsuarioHabilitado = async (usuario)=>{
 
 export const buscarTodosUsuariosHabilitados = async ()=>{
   const url=`http://localhost/clientes/api/usuarios/todos`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error al obtener los usuarios: ${response.statusText}`);
+  }
+  return response.json();
+};
+
+export const buscarTodosUsuariosCliente = async (id)=>{
+  const url=`http://localhost/clientes/api/usuarios/clientes/${id}`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Error al obtener los usuarios: ${response.statusText}`);

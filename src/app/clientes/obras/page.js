@@ -3,6 +3,7 @@
 import { buscarObrasCliente, habilitarObra, finalizarObra, pendienteObra } from "@/lib/clientes-api";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function Obra() {
     const [results, setResults] = useState([]);
@@ -16,6 +17,7 @@ export default function Obra() {
     // Estado del modal
     const [showModal, setShowModal] = useState(false);
     const [selectedEstado, setSelectedEstado] = useState("");
+    const [showMessage, setShowMessage] = useState(false);
 
     useEffect(() => {
         const storedClienteId = localStorage.getItem("clienteId");
@@ -63,6 +65,7 @@ export default function Obra() {
             await finalizarObra(selectedObra.id);
         }
         setShowModal(false);
+        setShowMessage(true);
         handleSearch(clienteId);
 
     };
@@ -70,11 +73,6 @@ export default function Obra() {
     return (    
         <div className="max-w-4xl mx-auto p-4 flex-1">
             <h1 className="text-2xl font-bold mb-4">Gestión de obras: {nombre || "Sin nombre"}</h1>
-            <Link href="/clientes/obras/crear">
-                        <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition mb-4">
-                            Asignar Obra
-                        </button>
-                    </Link>
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     {error}
@@ -111,19 +109,29 @@ export default function Obra() {
                     ))}
                 </tbody>
             </table>
-
-            {selectedObra && (
                 <div className="mt-4 flex justify-end space-x-4">
+                    <Link href="/clientes/obras/crear">
+                        <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition">
+                            Asignar Obra
+                        </button>
+                    </Link>
                     <button
                         onClick={handleCambioEstado}
-                        className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
-                    >
+                        className={`bg-yellow-500 text-white px-4 py-2 rounded-lg transition ${
+                            selectedObra?.estado !== "FINALIZADA" && selectedObra
+                            ? "hover:bg-yellow-600"
+                            : "opacity-50 cursor-not-allowed"
+                        }`}
+                        disabled={!selectedObra || selectedObra?.estado === "finalizado"}
+                        >
                         Cambiar estado
                     </button>
+                    <Link href="/clientes">
+                        <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                            Volver
+                        </button>
+                    </Link>
                 </div>
-            )}
-
-            {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -143,21 +151,27 @@ export default function Obra() {
                         </select>
                         <div className="mt-4 flex justify-end space-x-2">
                             <button
-                                onClick={() => setShowModal(false)}
-                                className="bg-red-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500 transition"
-                            >
-                                Cancelar
-                            </button>
-                            <button
                                 onClick={handleGuardarEstado}
-                                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+                                className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
                             >
                                 Guardar
+                            </button>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+                            >
+                                Cancelar
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+            {showMessage && (
+                        <ConfirmationMessage
+                            message="¡Estado actualizado correctamente!"
+                            type="success"
+                        />
+                        )}
         </div>
     );
 }

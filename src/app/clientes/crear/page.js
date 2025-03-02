@@ -2,7 +2,6 @@
 
 import { crearCliente } from '@/lib/clientes-api';
 import Link from 'next/link'; 
-//import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import ConfirmationMessage from '@/components/ConfirmationMessage';
 
@@ -15,7 +14,6 @@ export default function NewClient() {
   const [saldo, setSaldo] = useState(0);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  //const router = useRouter();
   const [showMessage, setShowMessage] = useState(false);
 
   const handleCreate = async () => {
@@ -150,11 +148,6 @@ export default function NewClient() {
       </div>
 
       <div className="flex justify-end items-center gap-4">
-        <Link href="/clientes">
-          <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
-            Volver a Clientes
-          </button>
-        </Link>
         <button
           onClick={handleCreate}
           disabled={loading}
@@ -162,6 +155,11 @@ export default function NewClient() {
         >
           {loading ? "Guardando..." : "Guardar Cliente"}
         </button>
+        <Link href="/clientes">
+          <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+            Volver
+          </button>
+        </Link>
       </div>
       {showMessage && (
                     <ConfirmationMessage

@@ -144,11 +144,6 @@ export default function NewObra() {
       </div>
 
       <div className="flex justify-end items-center gap-4">
-        <Link href="/clientes/obras">
-          <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
-            Volver a Gestion de Obras
-          </button>
-        </Link>
         <button
           onClick={handleCreate}
           disabled={loading}
@@ -156,6 +151,11 @@ export default function NewObra() {
         >
           {loading ? "Guardando..." : "Guardar Obra"}
         </button>
+        <Link href="/clientes/obras">
+          <button className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+            Volver a Gestion de Obras
+          </button>
+        </Link>
       </div>
       {showMessage && (
                     <ConfirmationMessage
