@@ -102,6 +102,7 @@ export default function Productos() {
   };
 
   const handleProvision = async () => {
+    setShowMessage(false);
     if(precioNuevo==null || stockNuevo==null){
 
     }
@@ -127,6 +128,8 @@ export default function Productos() {
       setStockNuevo(0);
       setSelectedProduct(null);
       setLoading(false);
+      setMessageType("provision");
+      setShowMessage(true);
     }
   };
 
@@ -139,6 +142,7 @@ export default function Productos() {
   };
 
   const handleSave = async() => {
+    setShowMessage(false);
     if (!editingProduct) return;
 
     setLoading(true);
@@ -168,6 +172,7 @@ export default function Productos() {
   };
 
   const handleDelete = async() => {
+    setShowMessage(false);
     if (!selectedProduct) return;
 
     try{
@@ -356,7 +361,7 @@ export default function Productos() {
                   setShowButtons(true);
                   setSelectedProduct(null);
                 }}
-                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
               >
                 Cancelar
               </button>
@@ -431,16 +436,16 @@ export default function Productos() {
             <p>¿Estás seguro de que deseas eliminar este producto?</p>
             <div className="mt-4 flex justify-end space-x-4">
               <button
-                onClick={() => setShowConfirm(false)}
-                className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
-              >
-                Cancelar
-              </button>
-              <button
                 onClick={handleDelete}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
               >
                 Eliminar
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+              >
+                Cancelar
               </button>
             </div>
           </div>
@@ -451,7 +456,9 @@ export default function Productos() {
           message={
             messageType === "eliminar"
             ? "¡Producto eliminado correctamente!"
-            : "¡Producto actualizado correctamente!"
+            : messageType ==="actualizar"
+            ? "¡Producto actualizado correctamente!"
+            :"¡Stock actualizado correctamente!"
           }
           type="success"
         />
@@ -460,8 +467,6 @@ export default function Productos() {
   <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
     <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col overflow-hidden min-h-[250px]">
       <h2 className="text-lg font-semibold mb-4">Provisión</h2>
-      
-      {/* Input de Precio */}
       <div className="flex flex-col">
         <label className="block font-semibold mb-1">Precio:</label>
         <input
@@ -479,7 +484,6 @@ export default function Productos() {
         </p>
       </div>
 
-      {/* Input de Cantidad */}
       <div className="flex flex-col">
         <label className="block font-semibold mb-1">Cantidad:</label>
         <input
@@ -497,7 +501,6 @@ export default function Productos() {
         </p>
       </div>
 
-      {/* Botones */}
       <div className="mt-4 flex justify-center space-x-4">
         <button
           onClick={handleProvision}
@@ -517,7 +520,7 @@ export default function Productos() {
             setPrecioNuevo(null);
             setStockNuevo(null);
           }}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+          className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
         >
           Cancelar
         </button>

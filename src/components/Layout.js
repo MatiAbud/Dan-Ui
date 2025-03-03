@@ -5,10 +5,12 @@ const Layout = ({ children }) => {
   return (
     <div>
       <Navbar />
-      <div className="container">
+      <div className="flex">
         <Sidebar />
-        <main>{children}</main>
+        <div className="flex-1 ml-64 p-4 overflow-y-auto h-screen">
+            {children}  {/* Aquí van los pedidos */}
       </div>
+    </div>
       <style jsx>{`
         .container {
           display: flex;

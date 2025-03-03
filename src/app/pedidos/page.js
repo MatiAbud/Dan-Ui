@@ -1,8 +1,9 @@
 'use client';
 
-import {buscarPedidoPorId, buscarTodosLosPedidos, buscarPedidosEstado, buscarPedidosCliente, entregarPedido, cancelarPedido } from "@/lib/pedidos-api"; // Importa las funciones de API
+import {buscarTodosLosPedidos, buscarPedidosEstado, buscarPedidosCliente, entregarPedido, cancelarPedido } from "@/lib/pedidos-api"; // Importa las funciones de API
 import Link from 'next/link';
 import { useState } from "react";
+import ConfirmationMessage from "@/components/ConfirmationMessage";
 
 export default function Pedidos() {
     const [searchEstado, setSearchEstado] = useState('');
@@ -14,6 +15,7 @@ export default function Pedidos() {
     const [error, setError] = useState('');
     const [modalDetalles, setModalDetalles] = useState(false);
     const [modalEstado, setModalEstado] = useState(false);
+    const [showMessage, setShowMessage] = useState(false);
 
     // Función para buscar un pedido por ID
     const handleSearch = async () => {
@@ -95,6 +97,7 @@ export default function Pedidos() {
     };
 
     const handleCambioEstado = async () =>{
+        setShowMessage(false);
         try{
             console.log("antes if");
             console.log(selectedEstado);
@@ -114,6 +117,7 @@ export default function Pedidos() {
             setSelectedEstado(null);
             setSelectedPedido(null);
             setModalEstado(false);
+            setShowMessage(true);
             handleSearchTodos();
         }
     }
@@ -253,7 +257,7 @@ export default function Pedidos() {
 
                     <div className="mt-4 flex justify-end space-x-4">          
                         <button
-                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                        className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                         onClick={cerrarModal}
                         >
                         Cerrar
@@ -308,7 +312,7 @@ export default function Pedidos() {
                                     Guardar
                                     </button>                               
                                     <button
-                                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                                        className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
                                         onClick={()=> {setModalEstado(false);
                                             setSelectedPedido(null);
                                         }}
@@ -318,6 +322,12 @@ export default function Pedidos() {
                                 </div>
                             </div>
                             </div>
+                        )}
+                    {showMessage && (
+                            <ConfirmationMessage
+                            message="¡Estado actualizado correctamente!"
+                            type="success"
+                            />
                         )}
         </div>
     );
