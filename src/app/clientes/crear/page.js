@@ -42,7 +42,7 @@ export default function NewClient() {
     try {
       await crearCliente(newClient);
       console.log("Cliente creado:", newClient);
-      //router.push('/clientes'); // Redirigir a la lista de clientes
+      setShowMessage(true);
     } catch (error) {
       console.error("Error:", error);
       setError("No se pudo crear el cliente. Intenta nuevamente más tarde.");
@@ -53,7 +53,6 @@ export default function NewClient() {
       setMaximoDescubierto(null);
       setNombre(null);
       setSaldo(null);
-      setShowMessage(true);
       setLoading(false);
     }
     
